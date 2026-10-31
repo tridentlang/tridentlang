@@ -14,4 +14,8 @@ The `syntax` module groups all subsystems responsible for transforming the raw s
 # Notes
 
 > [!NOTE]
-> TODO: Make it so that tokens and the ast out live the lexer and parser respectively.
+> **TODO**: Decouple token and AST lifecycles from the lexer and parser by explicitly passing a memory allocator.
+>
+> - **Memory Lifetime Refactor**
+>   - Pass custom arena-allocator handles directly into lexer and parser initialization routines.
+>   - Ensure tokens and AST nodes persist beyond the active parsing scope for downstream type-checking and code generation.

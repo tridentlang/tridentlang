@@ -3,6 +3,7 @@
 
 #include "core/diags/diags.h"
 #include "core/source/source.h"
+#include "sema/sema.h"
 #include "syntax/ast/ast.h"
 #include "syntax/lexer/lexer.h"
 #include "syntax/parser/parser.h"
@@ -28,8 +29,9 @@ int main(int argc, const char *const *argv) {
     Token *tokens = lex(l, false, NULL);
     Parser *p = init_parser(src, tokens);
     AstNode *root = parse(p);
-    print_ast(root);
-    putc('\n', stderr);
+    Analser *a = init_analyser(root);
+    analyse(a);
+    free_analser(a);
     free_Parser(p);
     free_lexer(l);
     free_source(src);
