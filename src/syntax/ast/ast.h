@@ -259,5 +259,6 @@ AstNode *ast_function(AstNode *base, bool noreturn, bool public, const char *nam
                       AstNode *return_type);
 AstNode *ast_param(AstNode *base, const char *name, AstNode *type);
 
+const char *ast_kind_to_string(AstKind kind);
 void print_ast(AstNode *root);
 void format_ast(FILE *file, AstNode *root);

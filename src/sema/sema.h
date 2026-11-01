@@ -1,7 +1,8 @@
 #pragma once
 
-#include "syntax/ast/ast.h"
 #include <stddef.h>
+
+#include "syntax/ast/ast.h"
 
 typedef struct {
     AstNode *root;
@@ -10,6 +11,8 @@ typedef struct {
     size_t loop_depth;
     size_t scope_depth;
 } Analser;
+
+#define ANALYSER(v) ((Analser *)(v)->ctx)
 
 Analser *init_analyser(Analser *a, AstNode *node);
 bool analyse(Analser *a);

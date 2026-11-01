@@ -8,7 +8,7 @@
 #include "core/mem/mem.h"
 #include "syntax/token/token.h"
 
-static const char *ast_kind_to_string(AstKind kind) {
+const char *ast_kind_to_string(AstKind kind) {
     static const char *const names[] = {
         [AST_PROGRAM] = "PROGRAM",
 
