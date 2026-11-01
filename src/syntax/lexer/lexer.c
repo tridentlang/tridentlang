@@ -26,6 +26,7 @@ static const Punctuator punctuators[] = {
 #define PUNCTUATION(tok, str) {str, sizeof(str) - 1, PUNCT_##tok},
 #define TOKEN(tok, name)
 #define INTRINSIC(tok, name)
+// violation: this is so that Punctuator are easy to add and/or remove, through token.def
 #include "syntax/token/token.def"
 #undef INTRINSIC
 #undef TOKEN

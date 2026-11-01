@@ -2,4 +2,4 @@
 
 #include "sema.h"
 
-bool analyser_pass_1(Analser *a);
+bool analyser_pass_0(Analser *a);

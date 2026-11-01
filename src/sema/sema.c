@@ -12,7 +12,7 @@ Analser *init_analyser(Analser *a, AstNode *root) {
 }
 
 bool analyse(Analser *a) {
-    analyser_pass_1(a);
+    analyser_pass_0(a);
     return true;
 }
 
