@@ -15,7 +15,7 @@ static bool enter_function(Visitor *v, AstNode *node) {
     return true;
 }
 
-bool analyser_pass_1(Analser *a) {
+bool analyser_pass_0(Analser *a) {
     Visitor v = {0};
     v.ctx = a;
     v.enter[AST_FUNCTION] = enter_function;
