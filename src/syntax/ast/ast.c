@@ -1,8 +1,9 @@
+#include <stdbool.h>
+
 #include "ast.h"
 
 #include "core/mem/mem.h"
 #include "syntax/token/token.h"
-#include <stdbool.h>
 
 AstNode *ast_new(Arena *arena, Span *span, Token *trivia) {
     AstNode *base = arena_alloc(arena, sizeof(AstNode));

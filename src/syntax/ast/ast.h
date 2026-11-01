@@ -58,6 +58,9 @@ typedef enum {
     AST_TYPE_FUNC,
     AST_STRUCT,
     AST_UNION,
+
+    /* to count the number of ast-kinds */
+    AST_COUNT
 } AstKind;
 
 struct AstNode {
@@ -199,6 +202,26 @@ struct AstNode {
         } param;
     } as;
 };
+
+typedef struct {
+    AstNode *heads[4];
+    size_t n;
+} AstKids;
+
+typedef struct Visitor Visitor;
+// false from an enter hook to skips node's childrens
+typedef bool (*VisitFn)(Visitor *v, AstNode *n);
+
+struct Visitor {
+    void *ctx; // Analyser *
+    VisitFn enter[AST_COUNT];
+    VisitFn leave[AST_COUNT];
+    bool stop; // To abort the whole walk
+};
+
+AstKids ast_kids(const AstNode *n);
+
+void ast_walk(Visitor *v, AstNode *head);
 
 AstNode *ast_new(Arena *arena, Span *span, Token *trivia);
 

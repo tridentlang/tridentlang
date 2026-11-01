@@ -1,25 +1,19 @@
 #include <stdbool.h>
-#include <stdlib.h>
 
+#include "analyser.h"
 #include "sema.h"
 
-#include "core/mem/mem.h"
 #include "syntax/ast/ast.h"
 
-struct Analser {
-    AstNode *root;
-};
-
-Analser *init_analyser(AstNode *root) {
-    Analser *a = xmalloc(sizeof(Analser));
+Analser *init_analyser(Analser *a, AstNode *root) {
+    *a = (Analser){0};
     a->root = root;
     return a;
 }
 
 bool analyse(Analser *a) {
-    print_ast(a->root);
-    putc('\n', stderr);
+    analyser_pass_1(a);
     return true;
 }
 
-void free_analser(Analser *a) { free(a); };
+void free_analser(Analser *a) { (void)a; };

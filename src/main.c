@@ -29,9 +29,12 @@ int main(int argc, const char *const *argv) {
     Token *tokens = lex(l, false, NULL);
     Parser *p = init_parser(src, tokens);
     AstNode *root = parse(p);
-    Analser *a = init_analyser(root);
+
+    Analser analyser = {0};
+    Analser *a = init_analyser(&analyser, root);
     analyse(a);
     free_analser(a);
+
     free_Parser(p);
     free_lexer(l);
     free_source(src);

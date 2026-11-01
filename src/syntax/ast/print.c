@@ -157,100 +157,6 @@ static void print_node_label(const AstNode *node) {
 }
 
 typedef struct {
-    AstNode *heads[4];
-    size_t n;
-} Kids;
-
-static void kids_add(Kids *k, AstNode *head) {
-    if (head) k->heads[k->n++] = head;
-}
-
-static Kids get_kids(const AstNode *n) {
-    Kids k = {0};
-    switch (n->kind) {
-    case AST_UNARY: kids_add(&k, n->as.unary.operand); break;
-
-    case AST_BINARY:
-        kids_add(&k, n->as.binary.lhs);
-        kids_add(&k, n->as.binary.rhs);
-        break;
-
-    case AST_COMPOUND: kids_add(&k, n->as.compound.assignees); break;
-
-    case AST_IF:
-    case AST_ELSE_IF:
-    case AST_WHILE:
-    case AST_LOOP_WHILE:
-        kids_add(&k, n->as.cond.cond);
-        kids_add(&k, n->as.cond.then_b);
-        kids_add(&k, n->as.cond.else_b);
-        break;
-
-    case AST_CASE:
-        kids_add(&k, n->as.ctl.expr);
-        kids_add(&k, n->as.ctl.body);
-        break;
-
-    case AST_INDEX:
-        kids_add(&k, n->as.index.left);
-        kids_add(&k, n->as.index.index);
-        break;
-
-    case AST_MEMBER:
-    case AST_DREF_MEMBER:
-        kids_add(&k, n->as.member.left);
-        kids_add(&k, n->as.member.member);
-        break;
-
-    case AST_CALL: kids_add(&k, n->as.call.args); break;
-
-    case AST_PROGRAM:
-    case AST_BLOCK:
-    case AST_EXPR_STMT:
-    case AST_CONTINUE:
-    case AST_BREAK:
-    case AST_RETURN:
-    case AST_ELSE:
-    case AST_LOOP: kids_add(&k, n->as.stmt.expr); break;
-
-    case AST_LET:
-        kids_add(&k, n->as.let.type);
-        kids_add(&k, n->as.let.expr);
-        break;
-
-    case AST_TYPE: kids_add(&k, n->as.type.type); break;
-
-    case AST_TYPE_ARRAY:
-        kids_add(&k, n->as.array.inner);
-        kids_add(&k, n->as.array.len);
-        break;
-
-    case AST_TYPE_POINTER:
-    case AST_TYPE_SLICE: kids_add(&k, n->as.pointer.inner); break;
-
-    case AST_TYPE_FUNC:
-        kids_add(&k, n->as.func_t.return_type);
-        kids_add(&k, NULL);
-        kids_add(&k, n->as.func_t.args);
-        break;
-
-    case AST_UNION:
-    case AST_STRUCT: kids_add(&k, n->as.structure.body); break;
-
-    case AST_FUNCTION:
-        kids_add(&k, n->as.func.return_type);
-        kids_add(&k, n->as.func.params);
-        kids_add(&k, n->as.func.body);
-        break;
-
-    case AST_PARAM: kids_add(&k, n->as.param.type); break;
-
-    default: break;
-    }
-    return k;
-}
-
-typedef struct {
     char *buf;
     size_t len, cap;
 } Prefix;
@@ -273,7 +179,7 @@ static void prefix_pop(Prefix *p, size_t old_len) {
 
 static void print_tree(const AstNode *node, Prefix *p, bool is_last);
 
-static void print_children(const Kids *k, Prefix *p) {
+static void print_children(const AstKids *k, Prefix *p) {
     for (size_t i = 0; i < k->n; i++)
         for (const AstNode *c = k->heads[i]; c; c = c->next)
             print_tree(c, p, !c->next && i + 1 == k->n);
@@ -286,7 +192,7 @@ static void print_tree(const AstNode *node, Prefix *p, bool is_last) {
 
     size_t mark = p->len;
     prefix_push(p, is_last ? "    " : "│   ");
-    Kids k = get_kids(node);
+    AstKids k = ast_kids(node);
     print_children(&k, p);
     prefix_pop(p, mark);
 }
@@ -300,7 +206,7 @@ void print_ast(AstNode *root) {
 
     for (const AstNode *n = root; n; n = n->next) {
         print_node_label(n);
-        Kids k = get_kids(n);
+        AstKids k = ast_kids(n);
         print_children(&k, &p);
     }
 
