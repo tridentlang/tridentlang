@@ -1,0 +1,50 @@
+name: Feature request
+description: Propose a new compiler capability or tooling feature.
+title: "[feature] "
+labels: ["enhancement", "triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can't you do today, or what is painful? Describe the problem before the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Include example source or CLI usage if it helps.
+    validations:
+      required: true
+  - type: dropdown
+    id: subsystem
+    attributes:
+      label: Subsystems affected
+      multiple: true
+      options:
+        - core
+        - syntax
+        - sema
+        - comptime hooks
+        - type
+        - backend
+        - driver
+        - tooling or scripts
+        - docs
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other designs, and what you would do without the feature.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: It fits the Code Guide (no new cross-subsystem coupling, public headers only).
+        - label: It does not need a language change. If it does, use the "Language design" template instead.
+        - label: I searched existing issues.
+          required: true

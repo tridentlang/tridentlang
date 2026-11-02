@@ -1,0 +1,56 @@
+name: Language design proposal
+description: Propose or discuss a change to the language itself (syntax, semantics, type system, rules).
+title: "[lang] "
+labels: ["language-design", "triage"]
+body:
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: What does this let programmers do or prevent, and how does it serve the language's goal?
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example
+      description: Show the proposed syntax or behavior in code.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Syntax
+        - Types (linear / affine)
+        - Modules and visibility
+        - Compiletime hooks
+        - Syntax extension
+        - Runtime checks / debug builds
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: semantics
+    attributes:
+      label: Semantics and edge cases
+      description: Precise behavior, including how it interacts with existing features and what errors it produces.
+    validations:
+      required: true
+  - type: textarea
+    id: soundness
+    attributes:
+      label: Can it be abused?
+      description: Can it weaken a guarantee, bypass a rule, or make checks unsound? Do the built-in checks still run first?
+  - type: textarea
+    id: cost
+    attributes:
+      label: Implementation cost
+      description: Parser, analyser, and backend changes, and whether it affects self-hosting.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Other designs, including doing nothing.

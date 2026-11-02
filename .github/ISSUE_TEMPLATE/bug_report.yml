@@ -1,0 +1,73 @@
+name: Bug report
+description: The compiler crashes, rejects valid code, accepts invalid code, or produces wrong output.
+title: "[bug] "
+labels: ["bug", "triage"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of bug is it?
+      options:
+        - Crash / hang / infinite loop
+        - Rejects valid code (false error)
+        - Accepts invalid code (missing error)
+        - Wrong output / miscompilation
+        - Wrong or misleading diagnostic
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: subsystem
+    attributes:
+      label: Subsystem (best guess)
+      options:
+        - core
+        - syntax
+        - sema
+        - type
+        - backend
+        - driver
+        - not sure
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal source that reproduces it
+      description: Trim it down as far as you can. A few lines is ideal.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and output
+      description: How you ran the compiler, and the full output including any AST dump or crash trace.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: OS, C compiler and version, build type (debug/release), commit hash.
+      placeholder: "Linux x86_64, clang 18, debug, 3f2a9c1"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything else
+      description: Suspected cause, related issues, whether it worked in an earlier commit.

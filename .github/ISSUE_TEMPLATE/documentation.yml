@@ -1,0 +1,30 @@
+name: Documentation
+description: Missing, wrong, or unclear docs, comments, or the Code Guide.
+title: "[docs] "
+labels: ["documentation", "triage"]
+body:
+  - type: input
+    id: location
+    attributes:
+      label: Where
+      description: File, section, or header comment.
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Type
+      options:
+        - Incorrect or outdated
+        - Missing
+        - Unclear
+        - Needs an example
+        - Typo
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details and suggested wording
+    validations:
+      required: true

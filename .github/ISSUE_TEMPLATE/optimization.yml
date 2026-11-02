@@ -1,0 +1,64 @@
+name: Optimization opportunity
+description: Something is slow or uses too much memory, or you spotted a cheaper way to do it.
+title: "[perf] "
+labels: ["performance", "triage"]
+body:
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What are we optimizing?
+      options:
+        - Compile time (a specific stage)
+        - Memory use
+        - Allocation count / arena usage
+        - Generated code quality
+        - Algorithmic complexity
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Stage
+      options:
+        - lexer
+        - parser
+        - sema passes
+        - comptime evaluator
+        - backend
+        - driver / IO
+        - not sure
+    validations:
+      required: true
+  - type: textarea
+    id: measurement
+    attributes:
+      label: Measurement
+      description: Numbers and how you got them (input size, tool, build type). Optimizing without a measurement is a guess.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: hotspot
+    attributes:
+      label: Where the cost is
+      description: Function, loop, or data structure. Include profiler output if you have it.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposed change
+      description: Include the expected gain and any cost (code complexity, memory, coupling).
+    validations:
+      required: true
+  - type: textarea
+    id: tradeoffs
+    attributes:
+      label: Trade-offs and risks
+      description: Does it change behavior, add a dependency, or make the code harder to follow?
+  - type: textarea
+    id: success
+    attributes:
+      label: Success criteria
+      placeholder: "e.g. parse stage under 20 ms on the 50k-line stress file, no regression elsewhere"

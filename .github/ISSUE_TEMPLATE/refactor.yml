@@ -1,0 +1,57 @@
+name: Refactor
+description: Restructure code without changing behavior.
+title: "[refactor] "
+labels: ["refactor", "triage"]
+body:
+  - type: textarea
+    id: current
+    attributes:
+      label: Current state
+      description: What is wrong with the code today? Point at files, functions, or structs.
+    validations:
+      required: true
+  - type: dropdown
+    id: smell
+    attributes:
+      label: Main motivation
+      options:
+        - Coupling between subsystems
+        - Ownership / lifetime confusion (who frees what)
+        - Duplicated code
+        - Data model change (types, structs, unions)
+        - Unclear or leaky public API
+        - Hard to test
+        - Readability / naming
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: target
+    attributes:
+      label: Target design
+      description: What should it look like afterwards? Sketch the new structs, function signatures, or file layout.
+    validations:
+      required: true
+  - type: textarea
+    id: plan
+    attributes:
+      label: Migration plan
+      description: Steps in an order that keeps the build green. Say whether a rewrite is cheaper than an incremental change.
+      placeholder: |
+        1. ...
+        2. ...
+  - type: textarea
+    id: verify
+    attributes:
+      label: How we know behavior did not change
+      description: For example, identical AST dump on the test files, or the existing tests pass unchanged.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Scope
+      options:
+        - label: No behavior change and no new features in this refactor.
+          required: true
+        - label: "`inclusion.py` reports no new violations after the change."

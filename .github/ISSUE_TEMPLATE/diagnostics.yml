@@ -1,0 +1,46 @@
+name: Diagnostic or error-message quality
+description: An error message is confusing, misplaced, duplicated, or missing, or parser recovery behaves badly.
+title: "[diagnostics] "
+labels: ["diagnostics", "triage"]
+body:
+  - type: dropdown
+    id: problem
+    attributes:
+      label: Problem
+      options:
+        - Confusing or misleading message
+        - Wrong location / span
+        - Cascading errors from one mistake
+        - Missing error
+        - Parser recovery loop or skips too much
+        - Missing hint or suggestion
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source that triggers it
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: current
+    attributes:
+      label: Current output
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: ideal
+    attributes:
+      label: What the output should say
+      description: Message text, where it points, and how many errors should appear.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Suspected stage (parser recovery, validate pass, resolver) if you know.
