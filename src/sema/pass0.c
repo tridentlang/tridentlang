@@ -8,9 +8,9 @@
 static bool enter_function(Visitor *v, AstNode *node) {
     Analser *a = ANALYSER(v);
     if (a->scope_depth && a->in_func) {
-        diag_err(a->src, node->span, true,
-                 "a func is a top level construct. a function inside of another is not "
-                 "allowed.");
+        diag_err(
+            a->src, node->span, true,
+            "a func is a top level construct. a function inside of another is not allowed.");
     }
     a->in_func = true;
     a->scope_depth += 1;
