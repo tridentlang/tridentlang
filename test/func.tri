@@ -8,3 +8,10 @@ func main() -> i32 {
     b : i32 = 35;
     return add(&a, &b);
 }
+
+func main() -> i32 {
+    a : i32 = 34;
+    b : i32 = 35;
+    return add(&a, &b);
+    func cause_err() @noreturn;
+}

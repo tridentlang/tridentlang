@@ -31,7 +31,7 @@ int main(int argc, const char *const *argv) {
     AstNode *root = parse(p);
 
     Analser analyser = {0};
-    Analser *a = init_analyser(&analyser, root);
+    Analser *a = init_analyser(&analyser, src, root);
     analyse(a);
     free_analser(a);
 

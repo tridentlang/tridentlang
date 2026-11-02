@@ -209,7 +209,7 @@ typedef struct {
 } AstKids;
 
 typedef struct Visitor Visitor;
-// false from an enter hook to skips node's childrens
+// false from an enter hook to skips the exit hook.
 typedef bool (*VisitFn)(Visitor *v, AstNode *n);
 
 struct Visitor {

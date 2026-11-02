@@ -6,6 +6,7 @@ static void kids_add(AstKids *k, AstNode *head) {
     if (head) k->heads[k->n++] = head;
 }
 
+// TODO: turn this function into a exec-dspatch-table.
 AstKids ast_kids(const AstNode *n) {
     AstKids k = {0};
     switch (n->kind) {
@@ -94,15 +95,17 @@ AstKids ast_kids(const AstNode *n) {
 void ast_walk(Visitor *visitor, AstNode *node) {
     for (; node && !visitor->stop; node = node->next) {
         VisitFn enter_hook = visitor->enter[node->kind];
-        bool descend = enter_hook ? enter_hook(visitor, node) : true;
+        bool exec_leave_hook = enter_hook ? enter_hook(visitor, node) : true;
 
-        if (descend && !visitor->stop) {
+        if (!visitor->stop) {
             AstKids k = ast_kids(node);
             for (size_t i = 0; i < k.n; i++)
                 ast_walk(visitor, k.heads[i]);
         }
 
-        VisitFn lv = visitor->leave[node->kind];
-        if (lv && !visitor->stop) lv(visitor, node);
+        if (exec_leave_hook) {
+            VisitFn leave_hook = visitor->leave[node->kind];
+            if (leave_hook && !visitor->stop) leave_hook(visitor, node);
+        }
     }
 }

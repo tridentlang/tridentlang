@@ -5,8 +5,9 @@
 
 #include "syntax/ast/ast.h"
 
-Analser *init_analyser(Analser *a, AstNode *root) {
+Analser *init_analyser(Analser *a, Source *src, AstNode *root) {
     *a = (Analser){0};
+    a->src = src;
     a->root = root;
     return a;
 }
