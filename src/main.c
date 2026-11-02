@@ -1,6 +1,3 @@
-#include <stdbool.h>
-#include <stdio.h>
-
 #include "core/diags/diags.h"
 #include "core/source/source.h"
 #include "sema/sema.h"
@@ -17,23 +14,15 @@ int main(int argc, const char *const *argv) {
 
     Source *src = init_source(argv[1]);
 
-    Lexer *l_src = init_lexer(src);
-    Token *tokens_src = lex(l_src, true, src->buffer);
-    putc('\n', stderr);
-    print_tokens(tokens_src);
-    putc('\n', stderr);
-    putc('\n', stderr);
-    free_lexer(l_src);
-
     Lexer *l = init_lexer(src);
     Token *tokens = lex(l, false, NULL);
     Parser *p = init_parser(src, tokens);
     AstNode *root = parse(p);
 
-    Analser analyser = {0};
-    Analser *a = init_analyser(&analyser, src, root);
+    Analyser analyser = {0};
+    Analyser *a = init_analyser(&analyser, src, root);
     analyse(a);
-    free_analser(a);
+    free_analyser(a);
 
     free_Parser(p);
     free_lexer(l);

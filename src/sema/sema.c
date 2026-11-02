@@ -5,16 +5,16 @@
 
 #include "syntax/ast/ast.h"
 
-Analser *init_analyser(Analser *a, Source *src, AstNode *root) {
-    *a = (Analser){0};
+Analyser *init_analyser(Analyser *a, Source *src, AstNode *root) {
+    *a = (Analyser){0};
     a->src = src;
     a->root = root;
     return a;
 }
 
-bool analyse(Analser *a) {
+bool analyse(Analyser *a) {
     analyser_pass_0(a);
     return true;
 }
 
-void free_analser(Analser *a) { (void)a; };
+void free_analyser(Analyser *a) { (void)a; };

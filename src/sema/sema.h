@@ -8,14 +8,14 @@
 typedef struct {
     Source *src;
     AstNode *root;
-    bool in_func;
     AstNode *cur_fn;
+    size_t fn_depth;
     size_t loop_depth;
     size_t scope_depth;
-} Analser;
+} Analyser;
 
-#define ANALYSER(v) ((Analser *)(v)->ctx)
+#define ANALYSER(v) ((Analyser *)(v)->ctx)
 
-Analser *init_analyser(Analser *a, Source *src, AstNode *root);
-bool analyse(Analser *a);
-void free_analser(Analser *a);
+Analyser *init_analyser(Analyser *a, Source *src, AstNode *root);
+bool analyse(Analyser *a);
+void free_analyser(Analyser *a);
