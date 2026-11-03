@@ -1,8 +1,9 @@
 #include <stdbool.h>
 
-#include "core/diags/diags.h"
+#include "analyser.h"
 #include "sema.h"
 
+#include "core/diags/diags.h"
 #include "syntax/ast/ast.h"
 
 static bool enter_function(Visitor *v, AstNode *node) {

@@ -6,6 +6,7 @@
 #include "syntax/lexer/lexer.h"
 #include "syntax/parser/parser.h"
 #include "syntax/token/token.h"
+#include "type/type.h"
 
 int main(int argc, const char *const *argv) {
     if (argc != 2) {
@@ -19,15 +20,14 @@ int main(int argc, const char *const *argv) {
     Arena *tokens = init_arena(sizeof(Token) * 1024);
     Token *root_token = lex(src, tokens);
 
-    Arena *nodes = init_arena(sizeof(Token) * 1024);
+    Arena *nodes = init_arena(sizeof(AstNode) * 1024);
     AstNode *root_node = parse(src, root_token, nodes);
     free_arena(tokens);
 
-    Analyser analyser = {0};
-    Analyser *a = init_analyser(&analyser, src, root_node);
-    analyse(a);
-    free_analyser(a);
+    Arena *info = init_arena(sizeof(Info) * 1024);
+    analyse(src, root_node, info);
 
+    free_arena(info);
     free_source(src);
     free_arena(nodes);
 
