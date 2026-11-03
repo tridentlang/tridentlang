@@ -1,7 +1,8 @@
 # BuilEditor && Build generated.
 .cache/
 .vscode/
-.zed/
+.zed/*
+!.zed/debug.json
 build/
 temp/
 trident
