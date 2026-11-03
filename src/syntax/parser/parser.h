@@ -6,6 +6,4 @@
 
 typedef struct Parser Parser;
 
-Parser *init_parser(Source *src, Token *tokens);
-AstNode *parse(Parser *p);
-void free_Parser(Parser *p);
+AstNode *parse(Source *src, Token *tokens, Arena *arena);

@@ -44,7 +44,7 @@ AstNode *parse_type(Parser *p) {
         if (!expect_and_consume(p, PUNCT_C_BRACKET)) return NULL;
 
         if (is_kind(p, KW_MUT) || is_kind(p, KW_CONST)) {
-            parser_error(p, NULL,
+            parser_error(p, current(p)->span,
                          "arrays take mutability from the binding, not the type");
             pconsume(p);
         }
@@ -72,6 +72,7 @@ AstNode *parse_type(Parser *p) {
         return ast_type(base(p, t), t);
     }
 
-    parser_error(p, NULL, "expected a type, found `%s'", token_kind_to_str(t->kind));
+    parser_error(p, current(p)->span, "expected a type, found `%s'",
+                 token_kind_to_str(t->kind));
     return NULL;
 }

@@ -9,6 +9,8 @@ struct Keyword {
   TokenKind kind;
 };
 
+%compare-strncmp
+
 %%
 void,     KW_VOID
 i8,       KW_I8

@@ -9,6 +9,8 @@ struct Intrinsic {
   TokenKind kind;
 };
 
+%compare-strncmp
+
 %%
 here,      IC_HERE
 module,    IC_MODULE

@@ -21,7 +21,7 @@ Token *pconsume(Parser *p) {
 
 Token *expect_and_consume(Parser *p, TokenKind kind) {
     if (!is_kind(p, kind)) {
-        return parser_error(p, NULL, "expected a `%s` before `%s`",
+        return parser_error(p, current(p)->span, "expected a `%s` before `%s`",
                             token_kind_to_str(kind), token_kind_to_str(current(p)->kind));
     }
     return pconsume(p);
@@ -29,11 +29,11 @@ Token *expect_and_consume(Parser *p, TokenKind kind) {
 
 inline bool is_kind(Parser *p, TokenKind kind) { return current(p)->kind == kind; }
 
-void *parser_error(Parser *p, Span *span, const char *fmt, ...) {
+void *parser_error(Parser *p, Span span, const char *fmt, ...) {
     ++p->errorc;
     va_list args;
     va_start(args, fmt);
-    vdiag_err(p->src, span == NULL ? current(p)->span : span, false, fmt, args);
+    vdiag_err(p->src, span, false, fmt, args);
     va_end(args);
     return NULL;
 }
@@ -64,6 +64,6 @@ void chain_append(NodeChain *c, AstNode *head) {
 }
 
 AstNode *base(Parser *p, Token *first) {
-    Span *span = span_merge(first->span, current(p)->last->span);
-    return ast_new(p->nodes, span, first);
+    Span span = span_merge(first->span, current(p)->last->span);
+    return ast_new(p->nodes, span);
 }

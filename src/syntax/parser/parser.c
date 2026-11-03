@@ -9,13 +9,12 @@
 #include "syntax/ast/ast.h"
 #include "syntax/token/token.h"
 
-Parser *init_parser(Source *src, Token *tokens) {
-    Parser *p = xmalloc(sizeof(Parser));
+Parser *init_parser(Parser *p, Source *src, Token *tokens, Arena *arena) {
     *p = (Parser){0};
     p->src = src;
     p->tokens = tokens;
     p->tok_tail = tokens;
-    p->nodes = init_arena(sizeof(AstNode) * 1024);
+    p->nodes = arena;
     return p;
 }
 
@@ -49,7 +48,11 @@ AstNode *parse_any(Parser *p) {
     }
 }
 
-AstNode *parse(Parser *p) {
+AstNode *parse(Source *src, Token *tokens, Arena *arena) {
+
+    Parser parser = {0};
+    Parser *p = init_parser(&parser, src, tokens, arena);
+
     Token *start = current(p);
     NodeChain chain = {0};
 
@@ -67,9 +70,4 @@ AstNode *parse(Parser *p) {
         fatal("parser had %zu error(s).", p->errorc);
     }
     return p->root;
-}
-
-void free_Parser(Parser *p) {
-    free_arena(p->nodes);
-    free(p);
 }

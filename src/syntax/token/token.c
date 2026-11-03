@@ -3,12 +3,10 @@
 #include "token.h"
 
 #include "core/def.h"
-#include "core/mem/mem.h"
+#include "core/sv/sv.h"
 
-Token *token(Arena *arena, TokenKind kind, const char *lexeme, Span *span, NumValue val) {
-    Token *tok = arena_alloc(arena, sizeof(Token));
-    *tok = (Token){kind, lexeme, span, val, NULL, NULL};
-    return tok;
+Token token(TokenKind kind, StrView lexeme, Span span, Value val) {
+    return (Token){kind, lexeme, span, val, NULL, NULL};
 }
 
 const char *token_kind_to_str(TokenKind kind) {
@@ -32,14 +30,15 @@ const char *token_kind_to_str(TokenKind kind) {
 }
 
 void print_token(const Token *tok) {
-    const char *text = tok->lexeme ? tok->lexeme : token_kind_to_str(tok->kind);
+    fprintf(stderr, "%s\t", token_kind_to_str(tok->kind));
+    const StrView text = tok->lexeme;
 
     switch (tok->kind) {
 #define LITERAL(t, n)
 #define TOKEN(t, n)
 #define KEYWORD(t, n)
 #define INTRINSIC(t, n)                                                                  \
-    case IC_##t: fprintf(stderr, COL_INTRINSIC "@%s", text); break;
+    case IC_##t: fprintf(stderr, COL_INTRINSIC "@%.*s", (int)text.len, text.str); break;
 #define PUNCTUATION(t, n)                                                                \
     case PUNCT_##t: fprintf(stderr, COL_PUNCT "%s", n); break;
 #include "token.def"
@@ -67,7 +66,7 @@ void print_token(const Token *tok) {
     case KW_F32:
     case KW_F64:
     case KW_F128:
-    case KW_STR: fprintf(stderr, COL_TYPE "%s", text); break;
+    case KW_STR: fprintf(stderr, COL_TYPE SV_FMT, SV_ARG(text)); break;
 
     case KW_IF:
     case KW_ELSE:
@@ -77,7 +76,7 @@ void print_token(const Token *tok) {
     case KW_CASE:
     case KW_BREAK:
     case KW_CONTINUE:
-    case KW_RETURN: fprintf(stderr, COL_CONTROL "%s", text); break;
+    case KW_RETURN: fprintf(stderr, COL_CONTROL SV_FMT, SV_ARG(text)); break;
 
     case KW_ENUM:
     case KW_UNION:
@@ -87,32 +86,29 @@ void print_token(const Token *tok) {
     case KW_VOLATILE:
     case KW_CONST:
     case KW_MUT:
-    case KW_FUNC: fprintf(stderr, COL_DECL "%s", text); break;
+    case KW_FUNC: fprintf(stderr, COL_DECL SV_FMT, SV_ARG(text)); break;
 
     case KW_TRUE:
-    case KW_FALSE: fprintf(stderr, COL_BOOL "%s", text); break;
+    case KW_FALSE: fprintf(stderr, COL_BOOL SV_FMT, SV_ARG(text)); break;
 
-    case IDENTIFIER_LIT: fprintf(stderr, COL_IDENT "%s", text); break;
+    case IDENTIFIER_LIT: fprintf(stderr, COL_IDENT SV_FMT, SV_ARG(text)); break;
     case CHARACTER_LIT: fprintf(stderr, COL_CHAR "'%c'", (char)tok->val.i); break;
     case INT_LIT: fprintf(stderr, COL_NUMBER "%zu", (size_t)tok->val.i); break;
     case FLOAT_LIT: fprintf(stderr, COL_NUMBER "%g", tok->val.f); break;
-    case STRING_LIT: fprintf(stderr, COL_STRING "\"%s\"", text); break;
+    case STRING_LIT: fprintf(stderr, COL_STRING "\"" SV_FMT "\"", SV_ARG(text)); break;
 
-    case COMMENT: fprintf(stderr, COL_COMMENT "%s", text); break;
-    case WHITE_SPACE:
-        for (size_t n = tok->span->end.i - tok->span->start.i; n > 0; n--)
-            fputc(' ', stderr);
-        break;
-    case NEW_LINE: fputc('\n', stderr); break;
     case END_OF_TOKEN: break;
 
-    default: fprintf(stderr, COL_UNKNOWN "%s", text); break;
+    default: fprintf(stderr, COL_UNKNOWN SV_FMT, SV_ARG(text)); break;
     }
     fprintf(stderr, RESET);
 }
 
 void print_tokens(const Token *tokens) {
     for (const Token *cur = tokens; cur != NULL; cur = cur->next) {
+        fprintf(stderr, "%zu:%zu:%zu:%zu\t", cur->span.start.ln, cur->span.start.cn,
+                cur->span.start.i, cur->span.start.i - cur->span.end.i);
         print_token(cur);
+        fprintf(stderr, "\n");
     }
 }

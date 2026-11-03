@@ -1,11 +1,9 @@
 #pragma once
 
-#include "syntax/token/token.h"
-
+#include "core/mem/mem.h"
 #include "core/source/source.h"
+#include "syntax/token/token.h"
 
 typedef struct Lexer Lexer;
 
-Lexer *init_lexer(Source *src);
-Token *lex(Lexer *l, bool lex_all, const char *buffer);
-void free_lexer(Lexer *l);
+Token *lex(Source *src, Arena *arena);

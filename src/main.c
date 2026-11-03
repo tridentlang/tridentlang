@@ -1,4 +1,5 @@
 #include "core/diags/diags.h"
+#include "core/mem/mem.h"
 #include "core/source/source.h"
 #include "sema/sema.h"
 #include "syntax/ast/ast.h"
@@ -12,19 +13,23 @@ int main(int argc, const char *const *argv) {
         fatal("Correct usage : %s <file_pat>", argv[0]);
     }
 
-    Source *src = init_source(argv[1]);
+    Source source = {0};
+    Source *src = init_source(&source, argv[1]);
 
-    Lexer *l = init_lexer(src);
-    Token *tokens = lex(l, false, NULL);
-    Parser *p = init_parser(src, tokens);
-    AstNode *root = parse(p);
+    Arena *tokens = init_arena(sizeof(Token) * 1024);
+    Token *root_token = lex(src, tokens);
+
+    Arena *nodes = init_arena(sizeof(Token) * 1024);
+    AstNode *root_node = parse(src, root_token, nodes);
+    free_arena(tokens);
 
     Analyser analyser = {0};
-    Analyser *a = init_analyser(&analyser, src, root);
+    Analyser *a = init_analyser(&analyser, src, root_node);
     analyse(a);
     free_analyser(a);
 
-    free_Parser(p);
-    free_lexer(l);
     free_source(src);
+    free_arena(nodes);
+
+    return 0;
 }

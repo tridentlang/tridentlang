@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "core/source/source.h"
+#include "core/sv/sv.h"
 #include "parser.h"
 
 #include "syntax/ast/ast.h"
@@ -12,7 +13,7 @@
 
 AstNode *parse_decl_stmt(Parser *p, bool mutable) {
     Token *start = current(p);
-    const char *name = expect_and_consume(p, IDENTIFIER_LIT)->lexeme;
+    StrView name = expect_and_consume(p, IDENTIFIER_LIT)->lexeme;
     expect_and_consume(p, PUNCT_COLON);
 
     AstNode *type = parse_type(p);
@@ -37,10 +38,10 @@ AstNode *parse_expr_stmt(Parser *p, AstKind kind) {
 
 AstNode *parse_func_param(Parser *p) {
     Token *start = current(p);
-    const char *name = NULL;
+    StrView name = (StrView){0};
     if (is_kind(p, IDENTIFIER_LIT)) name = pconsume(p)->lexeme;
-    if (!name)
-        parser_error(p, NULL, "expected a name, but got `%s'",
+    if (!name.str)
+        parser_error(p, current(p)->span, "expected a name, but got `%s'",
                      token_kind_to_str(current(p)->kind));
 
     expect_and_consume(p, PUNCT_COLON);
@@ -70,7 +71,7 @@ AstNode *parse_func_params(Parser *p, size_t *nparams) {
             chain_append(&params, param);
             ++*nparams;
             if (!params_end(p))
-                parser_error(p, NULL, "unexpected token `%s'",
+                parser_error(p, current(p)->span, "unexpected token `%s'",
                              token_kind_to_str(current(p)->kind));
         }
         while (!params_sync(p))
@@ -85,7 +86,7 @@ AstNode *parse_func_stmt(Parser *p, bool public) {
     bool noreturn = false;
     AstNode *type = NULL;
     Token *start = pconsume(p);
-    const char *name = pconsume(p)->lexeme;
+    StrView name = pconsume(p)->lexeme;
 
     expect_and_consume(p, PUNCT_O_PREN);
     size_t nparams = 0;
@@ -123,7 +124,7 @@ AstNode *parse_block_stmt(Parser *p) {
 AstNode *parse_structure_stmt(Parser *p, AstKind kind) {
     Token *start = pconsume(p);
 
-    const char *name = expect_and_consume(p, IDENTIFIER_LIT)->lexeme;
+    StrView name = expect_and_consume(p, IDENTIFIER_LIT)->lexeme;
     AstNode *body = parse_any(p);
     expect_and_consume(p, PUNCT_SEMICOLON);
 
@@ -137,7 +138,7 @@ AstNode *parse_type_stmt(Parser *p) {
     AstNode *type = parse_type(p);
     expect_and_consume(p, PUNCT_SEMICOLON);
 
-    return ast_type_stmt(base(p, start), name_tok ? name_tok->lexeme : NULL, type);
+    return ast_type_stmt(base(p, start), name_tok->lexeme, type);
 }
 
 AstNode *parse_if_stmt(Parser *p) {
@@ -168,8 +169,8 @@ AstNode *parse_while_stmt(Parser *p) {
     if (is_kind(p, KW_ELSE)) {
         Token *else_start = pconsume(p);
         AstNode *else_body = parse_any(p);
-        Span *span = span_merge(else_start->span, current(p)->span);
-        AstNode *base = ast_new(p->nodes, span, else_start);
+        Span span = span_merge(else_start->span, current(p)->span);
+        AstNode *base = ast_new(p->nodes, span);
         chain = ast_stmt(base, AST_ELSE, else_body);
     }
     return ast_cond(base(p, while_start), AST_WHILE, cond, then_b, chain);

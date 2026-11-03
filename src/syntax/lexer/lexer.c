@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "core/sv/sv.h"
 #include "keywords.h"
 #include "lexer.h"
 #include "process.h"
@@ -35,29 +36,14 @@ static const Punctuator punctuators[] = {
 #undef LITERAL
 };
 
-static void lex_comment(Lexer *l, Location start, bool lex_all) {
-    consume(l, 2);
-    for (;;) {
-        if (is_at_end(l) || peek(l, 0) == '\n') {
-            if (lex_all) {
-                const Location end = location(l->ln, l->cn, l->i);
-                char *comment = substr(l->lexeme, l->buffer, start.i, l->i);
-                lexer_emit(l, start, end, COMMENT, comment, (NumValue){0});
-            }
-            return;
-        }
-        consume(l, 1);
-    }
-}
-
 static void lex_identifier(Lexer *l, Location start) {
     consume_while(l, is_ident_char);
     const size_t length = l->i - start.i;
-    char *word = substr(l->lexeme, l->buffer, start.i, l->i);
-    const struct Keyword *keyword = get_keyword_kind(word, length);
+    StrView word = sv_at(l->buffer, start.i, l->i - start.i);
+    const struct Keyword *keyword = get_keyword_kind(word.str, length);
     const Location end = location(l->ln, l->cn, l->i);
     TokenKind kind = keyword != NULL ? keyword->kind : IDENTIFIER_LIT;
-    lexer_emit(l, start, end, kind, word, (NumValue){0});
+    lexer_emit(l, start, end, kind, word, (Value){0});
 }
 
 static bool consume_until_quote(Lexer *l, char quote) {
@@ -77,7 +63,7 @@ static bool consume_until_quote(Lexer *l, char quote) {
     return false;
 }
 
-static void lex_quoted(Lexer *l, bool lex_all, Location start) {
+static void lex_quoted(Lexer *l, Location start) {
     const char quote = peek(l, 0);
     consume(l, 1);
     const size_t body = l->i;
@@ -89,21 +75,21 @@ static void lex_quoted(Lexer *l, bool lex_all, Location start) {
         return;
     }
 
-    char *text = substr(l->lexeme, l->buffer, body, l->i);
+    StrView lexeme = sv_at(l->buffer, start.i, l->i - start.i);
     const size_t length = 1;
-    if (!lex_all) decode_escapes(l, start, text, l->i - body);
+    decode_escapes(l, start, (char *)lexeme.str, l->i - body);
     consume(l, 1);
 
     if (quote == '"') {
         const Location end = location(l->ln, l->cn, l->i);
-        lexer_emit(l, start, end, STRING_LIT, text, (NumValue){0});
+        lexer_emit(l, start, end, STRING_LIT, lexeme, (Value){0});
         return;
     }
 
     if (length == 0) lexer_error(l, start, "Empty character constant.");
     if (length > 2) lexer_error(l, start, "Character constant too long.");
     const Location end = location(l->ln, l->cn, l->i);
-    lexer_emit(l, start, end, CHARACTER_LIT, text, (NumValue){0});
+    lexer_emit(l, start, end, CHARACTER_LIT, lexeme, (Value){0});
 }
 
 static void lex_quoted_ident(Lexer *l, Location start) {
@@ -122,8 +108,8 @@ static void lex_quoted_ident(Lexer *l, Location start) {
         consume(l, 1);
     }
 
-    char *word = substr(l->lexeme, l->buffer, body, l->i);
-    const size_t n = decode_escapes(l, start, word, strlen(word));
+    StrView word = sv_at(l->buffer, start.i, l->i - start.i);
+    const size_t n = decode_escapes(l, start, (char *)word.str, body);
 
     if (closed) {
         consume(l, 1);
@@ -133,7 +119,7 @@ static void lex_quoted_ident(Lexer *l, Location start) {
     }
 
     const Location end = location(l->ln, l->cn, l->i);
-    lexer_emit(l, start, end, IDENTIFIER_LIT, word, (NumValue){0});
+    lexer_emit(l, start, end, IDENTIFIER_LIT, word, (Value){0});
     return;
 }
 
@@ -154,29 +140,13 @@ static bool lex_punctuator(Lexer *l, Location start) {
         return false;
     }
     consume(l, best->len);
+    StrView punct = sv_at(l->buffer, start.i, l->i - start.i);
     const Location end = location(l->ln, l->cn, l->i);
-    lexer_emit(l, start, end, best->kind, NULL, (NumValue){0});
+    lexer_emit(l, start, end, best->kind, punct, (Value){0});
     return true;
 }
 
-static void lex_white_space(Lexer *l, Location start) {
-    const char c = peek(l, 0);
-    TokenKind kind = UNKNOWN_TOKEN;
-    if (c == '\n') {
-        consume(l, 1);
-        kind = NEW_LINE;
-    } else {
-        while (is_space(peek(l, 0))) {
-            consume(l, 1);
-        }
-        kind = WHITE_SPACE;
-    }
-    const Location end = location(l->ln, l->cn, l->i);
-    lexer_emit(l, start, end, kind, NULL, (NumValue){0});
-}
-
-Lexer *init_lexer(Source *src) {
-    Lexer *l = xmalloc(sizeof(Lexer));
+static Lexer *init_lexer(Lexer *l, Source *src, Arena *arena) {
     *l = (Lexer){0};
     l->src = src;
     l->buffer = src->buffer;
@@ -184,9 +154,7 @@ Lexer *init_lexer(Source *src) {
     l->ln = 1;
     l->cn = 1;
 
-    l->lexeme = init_arena(src->buffer_len * 2 + 1);
-    l->token = init_arena(sizeof(Token) * 1024);
-    l->spans = init_arena(sizeof(Span) * 1024);
+    l->token = arena;
 
     l->token_head = arena_alloc(l->token, sizeof(Token));
     l->token_head->next = NULL;
@@ -195,26 +163,21 @@ Lexer *init_lexer(Source *src) {
     return l;
 }
 
-Token *lex(Lexer *l, bool lex_all, const char *buffer) {
-    if (lex_all) {
-        l->buffer = buffer;
-        l->buf_len = strlen(buffer);
-    }
+Token *lex(Source *src, Arena *arena) {
+    Lexer lexer = {0};
+    Lexer *l = init_lexer(&lexer, src, arena);
+
     while (!is_at_end(l)) {
         const Location start = location(l->ln, l->cn, l->i);
         const char c = peek(l, 0);
         l->t_cn = start.cn;
 
         if (is_space(c)) {
-            if (lex_all) {
-                lex_white_space(l, start);
-            } else {
-                consume(l, 1);
-            }
+            consume_while(l, is_space);
             continue;
         }
         if (c == '/' && peek(l, 1) == '/') {
-            lex_comment(l, start, lex_all);
+            consume_while(l, is_comment);
             continue;
         }
         if (is_alpha(c) || c == '_') {
@@ -226,7 +189,7 @@ Token *lex(Lexer *l, bool lex_all, const char *buffer) {
             continue;
         }
         if (c == '"' || c == '\'') {
-            lex_quoted(l, lex_all, start);
+            lex_quoted(l, start);
             continue;
         }
         if (c == '@') {
@@ -249,18 +212,12 @@ Token *lex(Lexer *l, bool lex_all, const char *buffer) {
     }
     // add the last token.
     Location loc_end = location(l->ln, l->cn, l->i);
-    lexer_emit(l, loc_end, loc_end, END_OF_TOKEN, "EOT", (NumValue){0});
+    StrView eot = sv(l->buffer, l->i);
+    lexer_emit(l, loc_end, loc_end, END_OF_TOKEN, eot, (Value){0});
     // nulling the first token's last token ptr.
     l->token_head->next->last = NULL;
 
     if (l->errorc > 0) fatal("Lexer had %zu error(s).", l->errorc);
 
     return l->token_head->next;
-}
-
-void free_lexer(Lexer *l) {
-    free_arena(l->lexeme);
-    free_arena(l->token);
-    free_arena(l->spans);
-    free(l);
 }

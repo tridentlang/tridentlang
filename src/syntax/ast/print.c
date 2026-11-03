@@ -6,6 +6,7 @@
 
 #include "core/def.h"
 #include "core/mem/mem.h"
+#include "core/sv/sv.h"
 #include "syntax/token/token.h"
 
 const char *ast_kind_to_string(AstKind kind) {
@@ -73,7 +74,7 @@ static void print_node_label(const AstNode *node) {
     case AST_PROGRAM: printf(FGB_CYAN "%s:" RESET, kind); break;
 
     case AST_INT:
-        printf(FGB_MAGENTA "%s: " FG_GREEN "\"%zu\"" RESET, kind, node->as.int_val);
+        printf(FGB_MAGENTA "%s: " FG_RED "%zu" RESET, kind, node->as.int_val);
         break;
 
     case AST_CHAR:
@@ -81,11 +82,13 @@ static void print_node_label(const AstNode *node) {
         break;
 
     case AST_IDENT:
-        printf(FGB_MAGENTA "%s: " FG_GREEN "\"%s\"" RESET, kind, node->as.ident.name);
+        printf(FGB_MAGENTA "%s: " FG_GREEN "\"" SV_FMT "\"" RESET, kind,
+               SV_ARG(node->as.ident.name));
         break;
 
     case AST_STRING:
-        printf(FGB_MAGENTA "%s: " FG_GREEN "\"%s\"" RESET, kind, node->as.str);
+        printf(FGB_MAGENTA "%s: " FG_GREEN "\"" SV_FMT "\"" RESET, kind,
+               SV_ARG(node->as.str));
         break;
 
     case AST_BOOL:
@@ -94,8 +97,9 @@ static void print_node_label(const AstNode *node) {
         break;
 
     case AST_COMPOUND:
-        printf(FGB_MAGENTA "%s: " FG_GREEN " \"%s\"" FGB_CYAN " : " FG_RED "%s" RESET,
-               kind, node->as.compound.name,
+        printf(FGB_MAGENTA "%s: " FG_GREEN " \"" SV_FMT "\"" FGB_CYAN " : " FG_RED
+                           "%s" RESET,
+               kind, SV_ARG(node->as.compound.name),
                node->as.compound.anonymous ? "anonymous" : "");
         break;
 
@@ -111,31 +115,34 @@ static void print_node_label(const AstNode *node) {
         break;
 
     case AST_LET:
-        printf(FGB_MAGENTA "%s:" FG_RED "%s" FG_GREEN " \"%s\" " RESET, kind,
-               node->as.let.mutable ? " mut" : "", node->as.let.name);
+        printf(FGB_MAGENTA "%s:" FG_RED "%s" FG_GREEN " \"" SV_FMT "\" " RESET, kind,
+               node->as.let.mutable ? " mut" : "", SV_ARG(node->as.let.name));
         break;
 
     case AST_FUNCTION:
-        printf(FG_RED "%s: " FG_BLUE "%s" FG_GREEN "\"%s\"" FG_RED " %s" RESET, kind,
-               node->as.func.public ? "public " : "", node->as.func.name,
+        printf(FG_RED "%s: " FG_BLUE "%s" FG_GREEN "\"" SV_FMT "\"" FG_RED " %s" RESET,
+               kind, node->as.func.public ? "public " : "", SV_ARG(node->as.func.name),
                node->as.func.noreturn ? "noreturn" : "");
         break;
 
     case AST_PARAM:
-        printf(FGB_MAGENTA "%s: " FG_GREEN " \"%s\"" RESET, kind, node->as.param.name);
+        printf(FGB_MAGENTA "%s: " FG_GREEN " \"" SV_FMT "\"" RESET, kind,
+               SV_ARG(node->as.param.name));
         break;
 
     case AST_CALL:
-        printf(FGB_MAGENTA "%s: " FG_GREEN "\"%s\"" RESET, kind, node->as.call.callee);
+        printf(FGB_MAGENTA "%s: " FG_GREEN "\"" SV_FMT "\"" RESET, kind,
+               SV_ARG(node->as.call.callee));
         break;
 
     case AST_TYPE:
-        printf(FGB_CYAN "%s: " FG_GREEN "\"%s\"" RESET, kind, node->as.type.name);
+        printf(FGB_CYAN "%s: " FG_GREEN "\"" SV_FMT "\"" RESET, kind,
+               SV_ARG(node->as.type.name));
         break;
 
     case AST_TYPE_NAME:
-        printf(FGB_CYAN "%s: -> " FG_GREEN "\"%s\"" RESET, kind,
-               node->as.type_tok->lexeme);
+        printf(FGB_CYAN "%s: -> " FG_GREEN "\"" SV_FMT "\"" RESET, kind,
+               SV_ARG(node->as.type_tok->lexeme));
         break;
 
     case AST_TYPE_ARRAY: printf(FGB_CYAN "%s: " RESET, kind); break;
@@ -148,7 +155,8 @@ static void print_node_label(const AstNode *node) {
 
     case AST_UNION:
     case AST_STRUCT:
-        printf(FG_RED "%s: " FG_GREEN "\"%s\"" RESET, kind, node->as.structure.name);
+        printf(FG_RED "%s: " FG_GREEN "\"" SV_FMT "\"" RESET, kind,
+               SV_ARG(node->as.structure.name));
         break;
 
     default: printf(FG_RED "%s:" RESET, kind); break;

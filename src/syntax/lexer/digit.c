@@ -1,8 +1,7 @@
 #include <stdlib.h>
 
+#include "core/sv/sv.h"
 #include "process.h"
-
-#include "core/mem/mem.h"
 
 static size_t parse_int(const char *text) {
     if (text[0] == '0' && (text[1] == 'b' || text[1] == 'B')) {
@@ -66,18 +65,18 @@ void lex_number(Lexer *l, Location start) {
         consume_while(l, is_ident_char);
     }
 
-    char *text = substr(l->lexeme, l->buffer, start.i, l->i);
+    StrView lexeme = sv_at(l->buffer, start.i, l->i - start.i);
     const Location end = location(l->ln, l->cn, l->i);
 
     if (is_float) {
-        NumValue val;
-        val.f = strtod(text, NULL);
-        lexer_emit(l, start, end, FLOAT_LIT, text, val);
+        Value val;
+        val.f = strtod(lexeme.str, NULL);
+        lexer_emit(l, start, end, FLOAT_LIT, lexeme, val);
         return;
     }
 
-    if (!is_radix && text[0] == '0' && text[1]) {
-        for (const char *p = text + 1; *p; p++) {
+    if (!is_radix && lexeme.str[0] == '0' && lexeme.str[1]) {
+        for (const char *p = lexeme.str + 1; *p; p++) {
             if (!is_octal(*p)) {
                 lexer_error(l, start, "Invalid digit '%c' in octal constant.", *p);
                 break;
@@ -85,7 +84,7 @@ void lex_number(Lexer *l, Location start) {
         }
     }
 
-    NumValue val;
-    val.i = parse_int(text);
-    lexer_emit(l, start, end, INT_LIT, text, val);
+    Value val;
+    val.i = parse_int(lexeme.str);
+    lexer_emit(l, start, end, INT_LIT, lexeme, val);
 }

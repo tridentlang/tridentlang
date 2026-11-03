@@ -3,15 +3,16 @@
 #include "ast.h"
 
 #include "core/mem/mem.h"
+#include "core/sv/sv.h"
 #include "syntax/token/token.h"
 
-AstNode *ast_new(Arena *arena, Span *span, Token *trivia) {
+AstNode *ast_new(Arena *arena, Span span) {
     AstNode *base = arena_alloc(arena, sizeof(AstNode));
-    *base = (AstNode){.span = span, .trivia = trivia};
+    *base = (AstNode){.span = span};
     return base;
 }
 
-AstNode *ast_ident_val(AstNode *base, const char *name) {
+AstNode *ast_ident_val(AstNode *base, StrView name) {
     base->kind = AST_IDENT;
     base->as.ident.name = name;
     return base;
@@ -35,7 +36,7 @@ AstNode *ast_char_val(AstNode *base, char char_val) {
     return base;
 }
 
-AstNode *ast_string_val(AstNode *base, const char *str) {
+AstNode *ast_string_val(AstNode *base, StrView str) {
     base->kind = AST_STRING;
     base->as.str = str;
     return base;
@@ -71,7 +72,7 @@ AstNode *ast_member(AstNode *base, AstKind kind, AstNode *left, AstNode *member)
     return base;
 }
 
-AstNode *ast_call(AstNode *base, const char *callee, AstNode *args, size_t argc) {
+AstNode *ast_call(AstNode *base, StrView callee, AstNode *args, size_t argc) {
     base->kind = AST_CALL;
     base->as.call.callee = callee;
     base->as.call.args = args;
@@ -79,8 +80,7 @@ AstNode *ast_call(AstNode *base, const char *callee, AstNode *args, size_t argc)
     return base;
 }
 
-AstNode *ast_compound(AstNode *base, const char *name, AstNode *assignees,
-                      bool anonymous) {
+AstNode *ast_compound(AstNode *base, StrView name, AstNode *assignees, bool anonymous) {
     base->kind = AST_COMPOUND;
     base->as.compound.name = name;
     base->as.compound.assignees = assignees;
@@ -94,7 +94,7 @@ AstNode *ast_stmt(AstNode *base, AstKind kind, AstNode *expr) {
     return base;
 }
 
-AstNode *ast_let(AstNode *base, const char *name, AstNode *type, AstNode *expr,
+AstNode *ast_let(AstNode *base, StrView name, AstNode *type, AstNode *expr,
                  bool mutable) {
     base->kind = AST_LET;
     base->as.let.name = name;
@@ -147,22 +147,21 @@ AstNode *ast_type_func(AstNode *base, AstNode *args, AstNode *return_type) {
     return base;
 }
 
-AstNode *ast_type_structure(AstNode *base, AstKind kind, const char *name,
-                            AstNode *body) {
+AstNode *ast_type_structure(AstNode *base, AstKind kind, StrView name, AstNode *body) {
     base->kind = kind;
     base->as.structure.name = name;
     base->as.structure.body = body;
     return base;
 }
 
-AstNode *ast_type_stmt(AstNode *base, const char *name, AstNode *type) {
+AstNode *ast_type_stmt(AstNode *base, StrView name, AstNode *type) {
     base->kind = AST_TYPE;
     base->as.type.name = name;
     base->as.type.type = type;
     return base;
 }
 
-AstNode *ast_function(AstNode *base, bool noreturn, bool public, const char *name,
+AstNode *ast_function(AstNode *base, bool noreturn, bool public, StrView name,
                       AstNode *params, size_t nparams, AstNode *body,
                       AstNode *return_type) {
     base->kind = AST_FUNCTION;
@@ -176,7 +175,7 @@ AstNode *ast_function(AstNode *base, bool noreturn, bool public, const char *nam
     return base;
 }
 
-AstNode *ast_param(AstNode *base, const char *name, AstNode *type) {
+AstNode *ast_param(AstNode *base, StrView name, AstNode *type) {
     base->kind = AST_PARAM;
     base->as.param.name = name;
     base->as.param.type = type;

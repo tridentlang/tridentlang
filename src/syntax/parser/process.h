@@ -53,7 +53,7 @@ bool is_expression_delimiter(TokenKind kind);
 void chain_append(NodeChain *c, AstNode *head);
 AstNode *base(Parser *p, Token *first);
 
-void *parser_error(Parser *p, Span *span, const char *fmt, ...)
+void *parser_error(Parser *p, Span span, const char *fmt, ...)
     __attribute__((format(printf, 3, 4)));
 
 AstNode *parse_any(Parser *p);

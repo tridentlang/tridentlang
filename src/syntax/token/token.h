@@ -1,8 +1,10 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stddef.h>
 
-#include "core/source/source.h"
+#include "core/span/span.h"
+#include "core/sv/sv.h"
 
 typedef enum {
 #define LITERAL(tok, name) tok##_LIT,
@@ -21,17 +23,18 @@ typedef enum {
 typedef union {
     size_t i;
     double f;
-} NumValue;
+    bool b;
+} Value;
 
 typedef struct Token {
     TokenKind kind;
-    const char *lexeme;
-    Span *span;
-    NumValue val;
+    StrView lexeme;
+    Span span;
+    Value val;
     struct Token *last;
     struct Token *next;
 } Token;
 
-Token *token(Arena *arena, TokenKind kind, const char *lexeme, Span *span, NumValue val);
+Token token(TokenKind kind, StrView lexeme, Span span, Value val);
 const char *token_kind_to_str(TokenKind kind);
 void print_tokens(const Token *tokens);

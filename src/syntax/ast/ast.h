@@ -5,7 +5,8 @@
 #include <stdio.h>
 
 #include "core/mem/mem.h"
-#include "core/source/source.h"
+#include "core/span/span.h"
+#include "core/sv/sv.h"
 #include "syntax/token/token.h"
 #include "type/type.h"
 
@@ -65,23 +66,30 @@ typedef enum {
 
 struct AstNode {
     AstKind kind;
-    Span *span;
-    Token *trivia;
+    Span span;
+
     AstNode *last;
     AstNode *next;
 
     union {
         /* AST_IDENT */
         struct {
-            const char *name;
+            StrView name;
             Info *info;
         } ident;
 
-        /* AST_INT, AST_FLOAT, AST_STRING, AST_CHAR, */
+        /* AST_INT */
         size_t int_val;
+
+        /* AST_FLOAT */
         float float_val;
-        const char *str;
+
+        /* AST_STRING */
+        StrView str;
+
+        /* AST_CHAR */
         char char_val;
+
         bool bool_val;
 
         /* AST_UNARY */
@@ -125,7 +133,7 @@ struct AstNode {
 
         /* AST_CALL: args is a linked list */
         struct {
-            const char *callee;
+            StrView callee;
             AstNode *args;
             size_t argc;
         } call;
@@ -138,13 +146,13 @@ struct AstNode {
 
         /* AST_STRUCT, AST_UNION */
         struct {
-            const char *name;
+            StrView name;
             AstNode *body;
         } structure;
 
         /* AST_LET */
         struct {
-            const char *name;
+            StrView name;
             AstNode *type;
             AstNode *expr;
             bool mutable;
@@ -154,7 +162,7 @@ struct AstNode {
         struct {
             bool noreturn;
             bool public;
-            const char *name;
+            StrView name;
             AstNode *params;
             size_t nparams;
             AstNode *body;
@@ -163,7 +171,7 @@ struct AstNode {
 
         /* AST_TYPE_STMT */
         struct {
-            const char *name;
+            StrView name;
             AstNode *type;
         } type;
 
@@ -172,7 +180,7 @@ struct AstNode {
 
         /* AST_COMPOUND */
         struct {
-            const char *name;
+            StrView name;
             AstNode *assignees;
             bool anonymous;
         } compound;
@@ -198,7 +206,7 @@ struct AstNode {
         /* AST_PARAM */
         struct {
             AstNode *type;
-            const char *name;
+            StrView name;
         } param;
     } as;
 };
@@ -223,25 +231,23 @@ AstKids ast_kids(const AstNode *n);
 
 void ast_walk(Visitor *v, AstNode *head);
 
-AstNode *ast_new(Arena *arena, Span *span, Token *trivia);
+AstNode *ast_new(Arena *arena, Span span);
 
-AstNode *ast_ident_val(AstNode *base, const char *name);
+AstNode *ast_ident_val(AstNode *base, StrView name);
 AstNode *ast_int_val(AstNode *base, size_t int_val);
 AstNode *ast_float_val(AstNode *base, float float_val);
 AstNode *ast_char_val(AstNode *base, char char_val);
-AstNode *ast_string_val(AstNode *base, const char *str);
+AstNode *ast_string_val(AstNode *base, StrView str);
 
 AstNode *ast_unary(AstNode *base, TokenKind op, bool postfix, AstNode *operand);
 AstNode *ast_binary(AstNode *base, TokenKind op, AstNode *left, AstNode *right);
 AstNode *ast_index(AstNode *base, AstNode *left, AstNode *index);
 AstNode *ast_member(AstNode *base, AstKind kind, AstNode *left, AstNode *member);
-AstNode *ast_call(AstNode *base, const char *callee, AstNode *args, size_t argc);
-AstNode *ast_compound(AstNode *base, const char *name, AstNode *assignees,
-                      bool anonymous);
+AstNode *ast_call(AstNode *base, StrView callee, AstNode *args, size_t argc);
+AstNode *ast_compound(AstNode *base, StrView name, AstNode *assignees, bool anonymous);
 
 AstNode *ast_stmt(AstNode *base, AstKind kind, AstNode *expr);
-AstNode *ast_let(AstNode *base, const char *name, AstNode *type, AstNode *expr,
-                 bool mutable);
+AstNode *ast_let(AstNode *base, StrView name, AstNode *type, AstNode *expr, bool mutable);
 AstNode *ast_cond(AstNode *base, AstKind kind, AstNode *cond, AstNode *then_b,
                   AstNode *else_b);
 AstNode *ast_ctl(AstNode *base, AstKind kind, AstNode *cond, AstNode *body);
@@ -250,14 +256,14 @@ AstNode *ast_type(AstNode *base, Token *type);
 AstNode *ast_type_array(AstNode *base, AstNode *inner, AstNode *len);
 AstNode *ast_type_pointer(AstNode *base, AstKind kind, AstNode *inner, bool mutable);
 AstNode *ast_type_func(AstNode *base, AstNode *args, AstNode *return_type);
-AstNode *ast_type_structure(AstNode *base, AstKind kind, const char *name, AstNode *body);
+AstNode *ast_type_structure(AstNode *base, AstKind kind, StrView name, AstNode *body);
 
-AstNode *ast_type_stmt(AstNode *base, const char *name, AstNode *type);
+AstNode *ast_type_stmt(AstNode *base, StrView name, AstNode *type);
 
-AstNode *ast_function(AstNode *base, bool noreturn, bool public, const char *name,
+AstNode *ast_function(AstNode *base, bool noreturn, bool public, StrView name,
                       AstNode *params, size_t nparams, AstNode *body,
                       AstNode *return_type);
-AstNode *ast_param(AstNode *base, const char *name, AstNode *type);
+AstNode *ast_param(AstNode *base, StrView name, AstNode *type);
 
 const char *ast_kind_to_string(AstKind kind);
 void print_ast(AstNode *root);

@@ -1,10 +1,10 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include "core/sv/sv.h"
 #include "parser.h"
 #include "process.h"
 
-#include "core/source/source.h"
 #include "syntax/ast/ast.h"
 #include "syntax/token/token.h"
 
@@ -76,14 +76,14 @@ AstNode *parse_atom(Parser *p) {
     Token *tok = current(p);
     if (is_kind_literal(tok->kind)) tok = pconsume(p);
 
-    AstNode *base = ast_new(p->nodes, tok->span, current(p));
+    AstNode *base = ast_new(p->nodes, tok->span);
 
     switch (tok->kind) {
     case INT_LIT: return ast_int_val(base, tok->val.i);
     case IDENTIFIER_LIT: return ast_ident_val(base, tok->lexeme);
     case STRING_LIT: return ast_string_val(base, tok->lexeme);
     default:
-        return parser_error(p, NULL, "expected a literal, but got `%s`",
+        return parser_error(p, current(p)->span, "expected a literal, but got `%s`",
                             token_kind_to_str(tok->kind));
     }
 }
@@ -92,7 +92,7 @@ AstNode *parse_paren_expr(Parser *p) {
     expect_and_consume(p, PUNCT_O_PREN);
 
     if (is_expression_delimiter(current(p)->kind)) {
-        parser_error(p, NULL, "expected a expression");
+        parser_error(p, current(p)->span, "expected a expression");
         pconsume(p);
         return NULL;
     }
@@ -123,8 +123,8 @@ static AstNode *parse_postfix(Parser *p) {
         } else if (kind == PUNCT_DOT || kind == PUNCT_ARROW) {
             Token *acess = pconsume(p);
             AstNode *member = parse_unary(p);
-            Span *span = span_merge(expr->span, acess->span);
-            AstNode *base = ast_new(p->nodes, span, current(p));
+            Span span = span_merge(expr->span, acess->span);
+            AstNode *base = ast_new(p->nodes, span);
             expr =
                 ast_member(base, acess->kind == PUNCT_DOT ? AST_MEMBER : AST_DREF_MEMBER,
                            expr, member);
@@ -163,7 +163,7 @@ static AstNode *parse_compound_struct(Parser *p, bool anonymous) {
 
 AstNode *parse_call(Parser *p) {
     Token *start = pconsume(p);
-    const char *name = start->lexeme;
+    StrView name = start->lexeme;
     expect_and_consume(p, PUNCT_O_PREN);
 
     size_t argc = 0;
@@ -184,7 +184,7 @@ AstNode *parse_call(Parser *p) {
         if (is_kind(p, PUNCT_COMMA)) {
             if (next(p)) {
                 if (next(p)->kind == PUNCT_C_PREN)
-                    parser_error(p, NULL, "expected a expression after `,`");
+                    parser_error(p, current(p)->span, "expected a expression after `,`");
             }
             pconsume(p);
         } else {

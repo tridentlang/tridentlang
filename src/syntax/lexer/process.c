@@ -1,6 +1,8 @@
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
+#include "core/sv/sv.h"
 #include "intrinsics.h"
 #include "process.h"
 
@@ -41,6 +43,46 @@ size_t consume_while(Lexer *l, bool (*pred)(char)) {
     return count;
 }
 
+void lex_intrinsic(Lexer *l, Location start) {
+    const size_t start_i = l->i;
+    consume_while(l, is_ident_char);
+    const size_t length = l->i - start_i;
+    StrView word = sv_at(l->buffer, start_i, l->i - start_i);
+    const struct Intrinsic *intrinsic = get_intrinsic_kind(word.str, length);
+
+    const Location end = location(l->ln, l->cn, l->i);
+
+    if (intrinsic == NULL) {
+        lexer_error(l, start, "unknown intrensic `@" SV_FMT "'.", SV_ARG(word));
+        lexer_emit(l, start, end, UNKNOWN_TOKEN, word, (Value){0});
+        return;
+    }
+    TokenKind kind = intrinsic->kind;
+
+    if (kind == IC_HERE) {
+        const char *file_path = l->src->file_path;
+        size_t str_len = strlen(file_path) + 22;
+        char *string = arena_alloc(l->token, strlen(file_path) + 22);
+        sprintf(string, "%s:%zu:%zu", file_path, start.ln, start.cn);
+        word.str = string;
+        word.len = str_len;
+        kind = STRING_LIT;
+    }
+
+    lexer_emit(l, start, end, kind, word, (Value){0});
+}
+
+void lexer_emit(Lexer *l, Location start, Location end, TokenKind kind, StrView lexeme,
+                Value val) {
+    Span s = span(start, end);
+    Token *new_token = arena_alloc(l->token, sizeof(Token));
+    *new_token = token(kind, lexeme, s, val);
+    Token *last_token = l->token_tail;
+    new_token->last = last_token;
+    l->token_tail->next = new_token;
+    l->token_tail = new_token;
+}
+
 void lexer_error(Lexer *l, Location start, const char *fmt, ...) {
     ++l->errorc;
     fprintf(stderr, "%s:%zu:%zu: ", l->src->file_path, start.ln, start.cn);
@@ -48,40 +90,4 @@ void lexer_error(Lexer *l, Location start, const char *fmt, ...) {
     va_start(args, fmt);
     verror(fmt, args);
     va_end(args);
-}
-
-void lexer_emit(Lexer *l, Location start, Location end, TokenKind kind,
-                const char *lexeme, NumValue val) {
-    Span *s = span(l->spans, start, end);
-    Token *new_token = token(l->token, kind, lexeme, s, val);
-    Token *last_token = l->token_tail;
-    new_token->last = last_token;
-    l->token_tail->next = new_token;
-    l->token_tail = new_token;
-}
-
-void lex_intrinsic(Lexer *l, Location start) {
-    const size_t start_i = l->i;
-    consume_while(l, is_ident_char);
-    const size_t length = l->i - start_i;
-    char *word = substr(l->lexeme, l->buffer, start_i, l->i);
-    const struct Intrinsic *intrinsic = get_intrinsic_kind(word, length);
-
-    const Location end = location(l->ln, l->cn, l->i);
-
-    if (intrinsic == NULL) {
-        lexer_error(l, start, "unknown intrensic `@%s'.", word);
-        lexer_emit(l, start, end, UNKNOWN_TOKEN, word, (NumValue){0});
-        return;
-    }
-    TokenKind kind = intrinsic->kind;
-
-    if (kind == IC_HERE) {
-        const char *file_path = l->src->file_path;
-        word = arena_alloc(l->lexeme, strlen(file_path) + 22);
-        sprintf(word, "%s:%zu:%zu", file_path, start.ln, start.cn);
-        kind = STRING_LIT;
-    }
-
-    lexer_emit(l, start, end, kind, word, (NumValue){0});
 }
