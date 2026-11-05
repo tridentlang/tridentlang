@@ -6,6 +6,8 @@
 
 void *xmalloc(size_t n);
 void *xrealloc(void *old, size_t n);
+void xfree(void *ptr);
+
 char *xstrndup(const char *s, size_t n);
 
 #ifndef ARENA_REGION_DEFAULT_CAPACITY

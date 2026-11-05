@@ -14,10 +14,15 @@ void *xmalloc(size_t n) {
 }
 
 void *xrealloc(void *old, size_t n) {
+    if (!old) fatal("trying to reallocate a NULL pointer.");
     void *p = realloc(old, n ? n : 1);
     if (!p) fatal("Out of memory");
-
     return p;
+}
+
+void xfree(void *ptr) {
+    if (!ptr) fatal("trying to free a NULL pointer.");
+    free(ptr);
 }
 
 char *xstrndup(const char *s, size_t n) {
