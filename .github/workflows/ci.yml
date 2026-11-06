@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang gperf python3 libclang-rt-dev
+
+      - name: Test
+        run: make check CC=clang MODE=debug
+
+      - name: Build
+        run: make clean && make CC=clang MODE=release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trident-linux-x86_64
+          path: trident
+          retention-days: 1
