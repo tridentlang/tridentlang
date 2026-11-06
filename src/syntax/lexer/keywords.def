@@ -9,6 +9,8 @@ struct Keyword {
   TokenKind kind;
 };
 
+%define initializer-suffix ,UNKNOWN_TOKEN
+
 %compare-strncmp
 
 %%
