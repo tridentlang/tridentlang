@@ -1,5 +1,5 @@
 *
 !*/
-!note.md
 !**/*.tri
+!**/*.expect
 !.gitignore

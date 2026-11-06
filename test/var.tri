@@ -1,4 +1,0 @@
-// This is a test example
-// This code doesn't compile.
-
-var : *const i32 = 12 + 34 * 3 / !(10 - -3);

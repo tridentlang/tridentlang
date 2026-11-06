@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Check the Code Guide include rules for every .c/.h file under src/.
 
 Definitions

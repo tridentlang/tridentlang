@@ -1,27 +1,29 @@
-SRC_DIR := $(ROOT_DIR)/src
-TARGET  := $(ROOT_DIR)/$(PROJECT)
+TARGET := $(ROOT_DIR)/$(PROJECT)
 
 SRCS := $(sort $(shell find $(SRC_DIR) -name '*.c'))
 OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD)/%.o,$(SRCS))
 DEPS := $(OBJS:.o=.d)
-JSON := $(OBJS:.o=.json)
 
-ALL_CFLAGS := $(CFLAGS) -std=c99 -I$(SRC_DIR) -MMD -MP
+CPPFLAGS_ALL := -I$(SRC_DIR) -MMD -MP
+ALL_CFLAGS   := $(CFLAGS) -std=c99 $(CPPFLAGS_ALL)
+DB_CFLAGS    := $(CFLAGS) -std=c99 -I$(SRC_DIR)
 
-KEYWORDS := syntax/lexer/keywords
-INTRINSICS := syntax/lexer/intrinsics
+LEXER_DIR  := $(SRC_DIR)/syntax/lexer
+KEYWORDS   := $(LEXER_DIR)/keywords
+INTRINSICS := $(LEXER_DIR)/intrinsics
+GENERATED  := $(KEYWORDS).h $(INTRINSICS).h
 
-all:  format $(KEYWORDS).h $(TARGET)
+all: $(TARGET)
 
-$(OBJS): | $(KEYWORDS).h $(INTRINSICS).h
+$(OBJS): | $(GENERATED)
 
 $(KEYWORDS).h: $(KEYWORDS).def
-	@printf "$(COLOR_MAGENTA)[gperf] %s$(COLOR_RESET)\n" $(notdir $@)
-	@gperf -N get_keyword_kind -t $< > $@
+	@printf '$(COLOR_MAGENTA)[gperf] %s$(COLOR_RESET)\n' $(notdir $@)
+	@gperf -N get_keyword_kind -t $< > $@.tmp && mv $@.tmp $@ || { rm -f $@.tmp; exit 1; }
 
 $(INTRINSICS).h: $(INTRINSICS).def
-	@printf "$(COLOR_MAGENTA)[gperf] %s$(COLOR_RESET)\n" $(notdir $@)
-	@gperf -N get_intrinsic_kind -t $< > $@
+	@printf '$(COLOR_MAGENTA)[gperf] %s$(COLOR_RESET)\n' $(notdir $@)
+	@gperf -N get_intrinsic_kind -t $< > $@.tmp && mv $@.tmp $@ || { rm -f $@.tmp; exit 1; }
 
 $(TARGET): $(OBJS)
 	@printf '$(COLOR_GREEN)[+] Linking %s ($(MODE))$(COLOR_RESET)\n' $(notdir $@)
@@ -30,21 +32,23 @@ $(TARGET): $(OBJS)
 $(BUILD)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
 	@printf '$(COLOR_YELLOW)[CC] %s$(COLOR_RESET)\n' $(patsubst $(SRC_DIR)/%,%,$<)
-	@$(CC) $(ALL_CFLAGS) -MJ $(@:.o=.json) -c $< -o $@
+	@$(CC) $(ALL_CFLAGS) -c $< -o $@
 
-compdb: $(OBJS)
-	@{ echo '['; cat $(JSON) | sed '$$ s/,$$//'; echo ']'; } > $(ROOT_DIR)/compile_commands.json
-	@printf '$(COLOR_MAGENTA)[=] compile_commands.json ($(words $(SRCS)) files)$(COLOR_RESET)\n'
+compdb:
+	@mkdir -p $(BUILD)/compdb
+	@n=0; for f in $(SRCS); do \
+		if [ $$n -gt 0 ]; then echo ','; fi; n=1; \
+		printf '{"directory":"%s","command":"%s","file":"%s"}' \
+			"$(ROOT_DIR)" "clang $(DB_CFLAGS) -c $$f" "$$f"; \
+	done > $(BUILD)/compdb/src.part
 
 format:
-	@echo -e "$(COLOR_BLUE)[clang-format] Formatting source files...$(COLOR_RESET)"
+	@printf '$(COLOR_BLUE)[clang-format] Formatting source files...$(COLOR_RESET)\n'
 	@clang-format -i $(SRCS)
 
-%.c:
-	@:
+clean-gen:
+	@rm -f $(GENERATED)
 
 -include $(DEPS)
 
-$(DEPS): ;
-
-.PHONY: all compdb
+.PHONY: all compdb format clean-gen
