@@ -2,9 +2,8 @@ name: ci
 
 on:
   push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    types: [opened, reopened]
 
 concurrency:
   group: ci-${{ github.ref }}
