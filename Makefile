@@ -53,6 +53,7 @@ all:
 	fi
 
 check: all golden
+	@$(MAKE) -C test unit
 
 golden: all
 	@printf '$(COLOR_BLUE)[Runing golden checks]$(COLOR_RESET)\n'
