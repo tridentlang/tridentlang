@@ -8,7 +8,8 @@
 #include "syntax/token/token.h"
 #include "type/type.h"
 
-int main(int argc, const char *const *argv) {
+int main(/*int argc, const char *const *argv*/) {
+    /*
     if (argc != 2) {
         fatal("incorrect usage! \n");
         fatal("Correct usage : %s <file_pat>", argv[0]);
@@ -32,4 +33,7 @@ int main(int argc, const char *const *argv) {
     free_arena(nodes);
 
     return 0;
+    */
+
+
 }

@@ -5,6 +5,7 @@
 #include <string.h>
 
 void *xmalloc(size_t n);
+void *xcalloc(size_t n, size_t size);
 void *xrealloc(void *old, size_t n);
 void xfree(void *ptr);
 

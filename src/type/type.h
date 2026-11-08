@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "core/mem/mem.h"
 #include "syntax/token/token.h"
@@ -16,7 +17,6 @@ typedef enum {
     TYPE_UNION,
     TYPE_ENUMERATION,
     TYPE_ERROR,
-    TYPE_TYPE,
 } TypeKind;
 
 typedef enum {
@@ -39,55 +39,74 @@ typedef enum {
     PRIMITIVE_F64,
     PRIMITIVE_F128,
     PRIMITIVE_STR,
-    PRIMITIVE_NONE, // for type error
+    PRIMITIVE_NONE, // for counting primitive types
 } PrimitiveKind;
 
-typedef struct Type Type;
-typedef struct Member Member;
+typedef uint32_t TypeIndex;
 
-struct Member {
-    Type *type;       // member typr
-    const char *name; // member name
-    Member *next;     // next member;
-};
+typedef const char *Name;
+
+typedef struct {
+    Name name;
+    TypeIndex type;
+} Member;
+
+typedef enum {
+    OBJECT_DECLARED,
+    OBJECT_COMPLETE,
+} ObjectState;
+
+typedef struct {
+    Name name;
+    bool anonymous;
+    ObjectState state;
+
+    Member *members;
+    uint32_t members_count;
+
+    uint32_t *slots;
+    uint32_t slot_mask;
+} Object;
+
+typedef struct Type Type;
 
 struct Type {
     TypeKind kind;
+
+    /* TYPE_PRIMITIVE: the PrimitiveKind
+     * TYPE_POINTER, TYPE_SLICE, TYPE_ARRAY: element type
+     * TYPE_FUNCTION: return type */
+    TypeIndex type;
+
     union {
-        /* TYPE_PRIMITIVE */
-        PrimitiveKind primitive;
-
-        /* TYPE_POINTER, (dynamicly sized array)TYPE_SLICE */
-        Type *element;
-
-        /* (staticly sized array)TYPE_ARRAY */
-        struct {
-            Type *type;
-            size_t size;
-        } array;
+        /* TYPE_ARRAY */
+        size_t array_size;
 
         /* TYPE_FUNCTION */
         struct {
-            Member *params;      // parameters
-            size_t params_count; // parameters count
-            Type *ret_type;      // return type
+            const TypeIndex *params;
+            size_t params_count;
         } func;
 
-        /* TYPE_STRUCTURE, TYPE_UNION, TYPE_ENUMERATION, TYPE_ERROR */
-        struct {
-            Member *members;      // members
-            size_t members_count; // members count
-            bool anonymous;       // for anonymous struct
-            const char *name;     // object name
-        } object;
-
-        /* TYPE_TYPE */
-        struct {
-            Type *type;       // type type
-            const char *name; // type name
-        } type;
+        /* TYPE_STRUCTURE, TYPE_UNION, TYPE_ENUMERATION */
+        Object object;
     } as;
 };
+
+typedef struct {
+    Arena *arena;
+
+    Type *types;
+    uint32_t count;
+    uint32_t capacity;
+
+    TypeIndex primitives[PRIMITIVE_NONE];
+    TypeIndex error;
+
+    TypeIndex *table;
+    uint32_t table_capacity;
+    uint32_t table_used;
+} TypePool;
 
 typedef enum {
     STATIC_VAR,
@@ -97,19 +116,35 @@ typedef enum {
 
 typedef struct {
     InfoKind kind;
-    Type *type;
+    TypeIndex type;
+    bool is_mutable;
+    Value val; // for constants.
 } Info;
 
 bool is_primitive_kind(const TokenKind kind);
-PrimitiveKind primitive_kind(const TokenKind kind);
+TypeIndex primitive_kind(const TokenKind kind);
 
-Type *type_primitive(Arena *arena, PrimitiveKind kind);
-Type *type_pointer(Arena *arena, Type *base);
-Type *type_slice(Arena *arena, Type *base);
-Type *type_array(Arena *arena, Type *base, size_t size);
-Type *type_function(Arena *arena, Member *params, size_t params_count, Type *ret_type);
-Type *type_object(Arena *arena, TypeKind kind, Member *members, size_t members_count,
-                  const char *name);
-Type *type_type(Arena *arena, Type *base, const char *name);
+TypePool *init_type_pool(void);
+void free_type_pool(TypePool *pool);
 
-Info *info(Arena *arena, InfoKind kind, Type *type);
+Type *type_get(const TypePool *pool, TypeIndex index);
+TypeIndex type_push(TypePool *pool, Type type);
+
+TypeIndex type_primitive(TypePool *pool, PrimitiveKind kind);
+TypeIndex type_error(const TypePool *pool);
+TypeIndex type_pointer(TypePool *pool, TypeIndex base);
+TypeIndex type_slice(TypePool *pool, TypeIndex base);
+TypeIndex type_array(TypePool *pool, TypeIndex base, size_t size);
+TypeIndex type_function(TypePool *pool, const TypeIndex *params, size_t params_count,
+                        TypeIndex ret_type);
+
+TypeIndex type_object_declare(TypePool *pool, TypeKind kind, Name name, bool anonymous);
+
+bool type_object_complete(TypePool *pool, TypeIndex object, const Member *members,
+                          uint32_t members_count, uint32_t *dup_index);
+
+const Member *type_find_member(const TypePool *pool, TypeIndex object, Name name);
+const Member *type_find_member_index(const TypePool *pool, TypeIndex object, Name name,
+                                     uint32_t *index);
+
+Info *info(Arena *arena, InfoKind kind, TypeIndex type, bool is_mutable, Value val);

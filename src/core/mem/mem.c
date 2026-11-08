@@ -13,6 +13,15 @@ void *xmalloc(size_t n) {
     return p;
 }
 
+void *xcalloc(size_t n, size_t size) {
+    void *p = calloc(n, size);
+    if (!p) {
+        fprintf(stderr, "out of memory\n");
+        abort();
+    }
+    return p;
+}
+
 void *xrealloc(void *old, size_t n) {
     if (!old) fatal("trying to reallocate a NULL pointer.");
     void *p = realloc(old, n ? n : 1);
