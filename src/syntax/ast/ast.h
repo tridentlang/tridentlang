@@ -238,6 +238,7 @@ AstNode *ast_int_val(AstNode *base, size_t int_val);
 AstNode *ast_float_val(AstNode *base, float float_val);
 AstNode *ast_char_val(AstNode *base, char char_val);
 AstNode *ast_string_val(AstNode *base, StrView str);
+AstNode *ast_bool_val(AstNode *base, bool bool_val);
 
 AstNode *ast_unary(AstNode *base, TokenKind op, bool postfix, AstNode *operand);
 AstNode *ast_binary(AstNode *base, TokenKind op, AstNode *left, AstNode *right);

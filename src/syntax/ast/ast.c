@@ -42,6 +42,12 @@ AstNode *ast_string_val(AstNode *base, StrView str) {
     return base;
 }
 
+AstNode *ast_bool_val(AstNode *base, bool bool_val) {
+    base->kind = AST_BOOL;
+    base->as.bool_val = bool_val;
+    return base;
+}
+
 AstNode *ast_unary(AstNode *base, TokenKind op, bool postfix, AstNode *operand) {
     base->kind = AST_UNARY;
     base->as.unary.op = op;

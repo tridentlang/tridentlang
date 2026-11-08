@@ -82,6 +82,8 @@ AstNode *parse_atom(Parser *p) {
     case INT_LIT: return ast_int_val(base, tok->val.i);
     case IDENTIFIER_LIT: return ast_ident_val(base, tok->lexeme);
     case STRING_LIT: return ast_string_val(base, tok->lexeme);
+    case KW_TRUE: return ast_bool_val(base, true);
+    case KW_FALSE: return ast_bool_val(base, false);
     default:
         return parser_error(p, current(p)->span, "expected a literal, but got `%s`",
                             token_kind_to_str(tok->kind));
