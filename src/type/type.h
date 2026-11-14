@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "core/mem/mem.h"
+#include "syntax/ast/ast.h"
 #include "syntax/token/token.h"
 
 typedef enum {
@@ -115,6 +116,7 @@ typedef enum {
 } InfoKind;
 
 typedef struct {
+    AstNode *decl;
     InfoKind kind;
     TypeIndex type;
     bool is_mutable;

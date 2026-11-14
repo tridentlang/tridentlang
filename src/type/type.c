@@ -356,6 +356,6 @@ const Member *type_find_member(const TypePool *pool, TypeIndex object, Name name
 
 Info *info(Arena *arena, InfoKind kind, TypeIndex type, bool is_mutable, Value val) {
     Info *info = arena_alloc(arena, sizeof(Info));
-    *info = (Info){kind, type, is_mutable, val};
+    *info = (Info){NULL, kind, type, is_mutable, val};
     return info;
 }

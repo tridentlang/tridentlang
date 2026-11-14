@@ -8,7 +8,6 @@
 #include "core/span/span.h"
 #include "core/sv/sv.h"
 #include "syntax/token/token.h"
-#include "type/type.h"
 
 typedef struct AstNode AstNode;
 
@@ -75,7 +74,7 @@ struct AstNode {
         /* AST_IDENT */
         struct {
             StrView name;
-            Info *info;
+            void *info;
         } ident;
 
         /* AST_INT */

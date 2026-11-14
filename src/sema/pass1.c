@@ -2,9 +2,9 @@
 #include <stddef.h>
 
 #include "analyser.h"
-#include "core/diags/diags.h"
 #include "sema.h"
 
+#include "core/diags/diags.h"
 #include "core/hashmap/hashmap.h"
 #include "core/mem/mem.h"
 #include "core/sv/sv.h"
@@ -52,9 +52,11 @@ static bool enter_param(Visitor *v, AstNode *node) {
     Info *var = scope_stack_lookup(a->scope_stack, node->as.param.name);
     if (!var) {
         var = info(a->info, PARAM_VAR, 0, 0, (Value){0});
+        var->decl = node;
     } else {
         diag_err(a->src, node->span, true,
                  "duplicate parameter name in a function definition.");
+        diag_info(a->src, var->decl->span, false, "previous declaration at");
     }
     put_to_hash_map(a->current_scope_table, node->as.param.name.str,
                     node->as.param.name.len, var);
@@ -76,8 +78,8 @@ bool analyser_pass_1(Analyser *a) {
     HashMap *global_scope = init_hash_map(16);
     stack_push(a->scope_stack, global_scope);
 
-    print_ast(a->root);
-    fprintf(stderr, "\nsema-pass-1\n\n");
+    // print_ast(a->root);
+    // fprintf(stderr, "\nsema-pass-1\n\n");
     ast_walk(&v, a->root);
 
     free_hash_map(global_scope);

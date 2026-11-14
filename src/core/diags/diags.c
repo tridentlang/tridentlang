@@ -124,7 +124,7 @@ void verror(const char *format, va_list arguments) {
 void vdiag_err(const Source *source, Span span, bool red_highlight, const char *format,
                va_list arguments) {
     if (source != NULL) {
-        fprintf(stderr, BOLD FGB_WHITE "%s:%zu:%zu: " RESET, source->file_path,
+        fprintf(stderr, DIM FGB_WHITE "%s:%zu:%zu: " RESET, source->file_path,
                 span.start.ln, span.start.cn + 1);
     }
     verror(format, arguments);
@@ -143,6 +143,29 @@ void error(const char *format, ...) {
     va_list arguments;
     va_start(arguments, format);
     verror(format, arguments);
+    va_end(arguments);
+}
+
+static void vinfo(bool is_note, const char *format, va_list arguments) {
+    fprintf(stderr, BOLD FGB_GREEN "%s: " FGB_WHITE, is_note ? "NOTE" : "INFO");
+    vfprintf(stderr, format, arguments);
+    fputs(RESET "\n", stderr);
+}
+
+void vdiag_info(const Source *source, Span span, bool is_note, const char *format,
+                va_list arguments) {
+    if (source != NULL) {
+        fprintf(stderr, DIM FGB_WHITE "%s:%zu:%zu: " RESET, source->file_path,
+                span.start.ln, span.start.cn + 1);
+    }
+    vinfo(is_note, format, arguments);
+    if (source != NULL) diag_render_span(source, span, false);
+}
+
+void diag_info(const Source *source, Span span, bool is_note, const char *format, ...) {
+    va_list arguments;
+    va_start(arguments, format);
+    vdiag_info(source, span, is_note, format, arguments);
     va_end(arguments);
 }
 
