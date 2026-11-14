@@ -22,12 +22,16 @@ Arena *init_arena(size_t region_size);
 void *arena_alloc(Arena *arena, size_t size);
 void free_arena(Arena *arena);
 
-typedef struct Stack Stack;
+typedef struct  {
+    void **data;
+    size_t size;
+    size_t cap;
+} Stack;
 
 Stack *init_stack(Stack *stack, size_t stack_size);
 bool stack_push(Stack *stack, void *element);
 void *stack_pop(Stack *stack);
-size_t stack_size(const Stack *stack);
+void *stack_top(Stack *stack);
 void free_stack(Stack *stack);
 
 char *xstrdup(const char *s);

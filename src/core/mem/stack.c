@@ -4,12 +4,6 @@
 
 #include "mem.h"
 
-struct Stack {
-    void **data;
-    size_t size;
-    size_t cap;
-};
-
 Stack *init_stack(Stack *stack, size_t stack_size) {
     if (stack_size == 0) stack_size = 8;
     stack->data = (void **)malloc(stack_size * sizeof(void *));
@@ -35,7 +29,10 @@ void *stack_pop(Stack *stack) {
     return stack->data[--stack->size];
 }
 
-size_t stack_size(const Stack *stack) { return stack->size; }
+void *stack_top(Stack *stack) {
+    if (stack->size == 0) return NULL;
+    return stack->data[stack->size];
+}
 
 void free_stack(Stack *stack) {
     free((void *)stack->data);
