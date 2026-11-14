@@ -23,7 +23,7 @@ void *xcalloc(size_t n, size_t size) {
 }
 
 void *xrealloc(void *old, size_t n) {
-    if (!old) fatal("trying to reallocate a NULL pointer.");
+    // if (!old) fatal("trying to reallocate a NULL pointer.");
     void *p = realloc(old, n ? n : 1);
     if (!p) fatal("Out of memory");
     return p;

@@ -8,8 +8,7 @@
 #include "syntax/token/token.h"
 #include "type/type.h"
 
-int main(/*int argc, const char *const *argv*/) {
-    /*
+int main(int argc, const char *const *argv) {
     if (argc != 2) {
         fatal("incorrect usage! \n");
         fatal("Correct usage : %s <file_pat>", argv[0]);
@@ -23,17 +22,14 @@ int main(/*int argc, const char *const *argv*/) {
 
     Arena *nodes = init_arena(sizeof(AstNode) * 1024);
     AstNode *root_node = parse(src, root_token, nodes);
-    free_arena(tokens);
 
     Arena *info = init_arena(sizeof(Info) * 1024);
     analyse(src, root_node, info);
 
-    free_arena(info);
     free_source(src);
+    free_arena(tokens);
     free_arena(nodes);
+    free_arena(info);
 
     return 0;
-    */
-
-
 }

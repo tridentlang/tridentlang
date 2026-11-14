@@ -1,13 +1,55 @@
+#include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "core/sv/sv.h"
 #include "process.h"
 
-static size_t parse_int(const char *text) {
-    if (text[0] == '0' && (text[1] == 'b' || text[1] == 'B')) {
-        return (size_t)strtoull(text + 2, NULL, 2);
+static size_t parse_int(StrView sv, bool *overflow) {
+    char buf[128];
+    *overflow = false;
+
+    if (sv.len >= sizeof buf) {
+        *overflow = true;
+        return 0;
     }
-    return (size_t)strtoull(text, NULL, 0);
+
+    memcpy(buf, sv.str, sv.len);
+    buf[sv.len] = '\0';
+
+    errno = 0;
+    unsigned long long v;
+    if (buf[0] == '0' && (buf[1] == 'b' || buf[1] == 'B')) {
+        v = strtoull(buf + 2, NULL, 2);
+    } else if (buf[0] == '0' && (buf[1] == 'o' || buf[1] == 'O')) {
+        v = strtoull(buf + 2, NULL, 8);
+    } else {
+        v = strtoull(buf, NULL, 0);
+    }
+
+    if (errno == ERANGE || v > (unsigned long long)SIZE_MAX) {
+        *overflow = true;
+        return 0;
+    }
+    return (size_t)v;
+}
+
+static double parse_float(StrView sv) {
+    char stack[128];
+    char *buf = stack;
+
+    if (sv.len >= sizeof stack) {
+        buf = malloc(sv.len + 1);
+        if (!buf) return 0.0;
+    }
+
+    memcpy(buf, sv.str, sv.len);
+    buf[sv.len] = '\0';
+
+    const double v = strtod(buf, NULL);
+
+    if (buf != stack) free(buf);
+    return v;
 }
 
 static void lex_radix_digits(Lexer *l, Location start, bool (*is_valid)(char),
@@ -51,6 +93,9 @@ void lex_number(Lexer *l, Location start) {
     } else if (c0 == '0' && (next == 'b' || next == 'B')) {
         is_radix = true;
         lex_radix_digits(l, start, is_bin_digit, "Binary constant has no digits.");
+    } else if (c0 == '0' && (next == 'o' || next == 'O')) {
+        is_radix = true;
+        lex_radix_digits(l, start, is_octal, "Octal constant has no digits.");
     } else {
         consume_while(l, is_digit);
         is_float = lex_fraction_exponent(l);
@@ -70,21 +115,24 @@ void lex_number(Lexer *l, Location start) {
 
     if (is_float) {
         Value val;
-        val.f = strtod(lexeme.str, NULL);
+        val.f = parse_float(lexeme);
         lexer_emit(l, start, end, FLOAT_LIT, lexeme, val);
         return;
     }
 
-    if (!is_radix && lexeme.str[0] == '0' && lexeme.str[1]) {
-        for (const char *p = lexeme.str + 1; *p; p++) {
-            if (!is_octal(*p)) {
-                lexer_error(l, start, "Invalid digit '%c' in octal constant.", *p);
+    if (!is_radix && lexeme.len > 1 && lexeme.str[0] == '0') {
+        for (size_t k = 1; k < lexeme.len; k++) {
+            if (!is_octal(lexeme.str[k])) {
+                lexer_error(l, start, "Invalid digit '%c' in octal constant.",
+                            lexeme.str[k]);
                 break;
             }
         }
     }
 
+    bool overflow;
     Value val;
-    val.i = parse_int(lexeme.str);
+    val.i = parse_int(lexeme, &overflow);
+    if (overflow) lexer_error(l, start, "Integer constant is too large.");
     lexer_emit(l, start, end, INT_LIT, lexeme, val);
 }

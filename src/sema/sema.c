@@ -18,5 +18,10 @@ bool analyse(Source *src, AstNode *root, Arena *arena) {
     Analyser analyser = {0};
     Analyser *a = init_analyser(&analyser, src, root, arena);
     analyser_pass_0(a);
+
+    *a = (Analyser){0};
+    init_analyser(a, src, root, arena);
+    analyser_pass_1(a);
+
     return true;
 }

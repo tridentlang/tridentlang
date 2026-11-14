@@ -66,7 +66,6 @@ static bool consume_until_quote(Lexer *l, char quote) {
 static void lex_quoted(Lexer *l, Location start) {
     const char quote = peek(l, 0);
     consume(l, 1);
-    const size_t body = l->i;
 
     if (!consume_until_quote(l, quote)) {
         const char *msg = quote == '"' ? "Unterminated string literal."
@@ -77,7 +76,6 @@ static void lex_quoted(Lexer *l, Location start) {
 
     StrView lexeme = sv_at(l->buffer, start.i, l->i - start.i);
     const size_t length = 1;
-    decode_escapes(l, start, (char *)lexeme.str, l->i - body);
     consume(l, 1);
 
     if (quote == '"') {
@@ -94,7 +92,6 @@ static void lex_quoted(Lexer *l, Location start) {
 
 static void lex_quoted_ident(Lexer *l, Location start) {
     consume(l, 1);
-    const size_t body = l->i;
     bool closed = false;
 
     while (true) {
@@ -109,11 +106,10 @@ static void lex_quoted_ident(Lexer *l, Location start) {
     }
 
     StrView word = sv_at(l->buffer, start.i, l->i - start.i);
-    const size_t n = decode_escapes(l, start, (char *)word.str, body);
 
     if (closed) {
         consume(l, 1);
-        if (n == 0) lexer_error(l, start, "Quoted identifier is empty.");
+        if (word.len == 0) lexer_error(l, start, "Quoted identifier is empty.");
     } else {
         lexer_error(l, start, "Unterminated quoted identifier.");
     }

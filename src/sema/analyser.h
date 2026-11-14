@@ -15,3 +15,4 @@ struct Analyser {
 };
 
 bool analyser_pass_0(Analyser *a);
+bool analyser_pass_1(Analyser *a);

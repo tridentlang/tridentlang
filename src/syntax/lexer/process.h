@@ -42,8 +42,6 @@ char peek(const Lexer *l, size_t offset);
 void consume(Lexer *l, size_t count);
 size_t consume_while(Lexer *l, bool (*pred)(char));
 
-size_t decode_escapes(Lexer *l, Location start, char *s, size_t len);
-
 void lex_number(Lexer *l, Location start);
 void lex_intrinsic(Lexer *l, Location start);
 
