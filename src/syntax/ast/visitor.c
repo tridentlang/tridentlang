@@ -97,7 +97,7 @@ void ast_walk(Visitor *visitor, AstNode *node) {
         VisitFn enter_hook = visitor->enter[node->kind];
         bool exec_leave_hook = enter_hook ? enter_hook(visitor, node) : true;
 
-        if (!visitor->stop) {
+        if (exec_leave_hook && !visitor->stop) {
             AstKids k = ast_kids(node);
             for (size_t i = 0; i < k.n; i++)
                 ast_walk(visitor, k.heads[i]);

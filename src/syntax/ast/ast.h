@@ -151,8 +151,9 @@ struct AstNode {
 
         /* AST_LET */
         struct {
-            StrView name;
             AstNode *type;
+            StrView name;
+            void *info;
             AstNode *expr;
             bool mutable;
         } let;
@@ -206,6 +207,7 @@ struct AstNode {
         struct {
             AstNode *type;
             StrView name;
+            void *info;
         } param;
     } as;
 };
