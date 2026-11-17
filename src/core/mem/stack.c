@@ -31,7 +31,7 @@ void *stack_pop(Stack *stack) {
 
 void *stack_top(Stack *stack) {
     if (stack->size == 0) return NULL;
-    return stack->data[stack->size];
+    return stack->data[stack->size - 1];
 }
 
 void free_stack(Stack *stack) {
