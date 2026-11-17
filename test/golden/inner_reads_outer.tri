@@ -1,0 +1,13 @@
+// This is a test example
+// This code may not compile.
+
+func main() -> i32 {
+    a : i32 = 1;
+    {
+        {
+            b : i32 = a + 1;
+            a = b;
+        }
+    }
+    return a;
+}
