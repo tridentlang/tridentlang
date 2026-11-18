@@ -7,6 +7,10 @@
 > If your system or setup is not available, you can become a contributor and create a PR to add it.  
 > Want to contribute? Email me ;) The project is currently closed to contributors and collaborators only.
 
+<p align="center">
+  <img src="./docs/logo.png" alt="Trident Language Logo" width="200">
+</p>
+
 <div align="center">
   <p>
     <img alt="License" src="https://img.shields.io/github/license/tridentlang/tridentlang?style=for-the-badge&color=00b894">
