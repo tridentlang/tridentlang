@@ -10,6 +10,7 @@
 
 typedef enum {
     TYPE_PRIMITIVE,
+    TYPE_ALIAS,
     TYPE_POINTER,
     TYPE_SLICE,
     TYPE_ARRAY,
@@ -34,12 +35,12 @@ typedef enum {
     PRIMITIVE_U64,
     PRIMITIVE_U128,
     PRIMITIVE_USIZE,
-    PRIMITIVE_BOOL,
     PRIMITIVE_F16,
     PRIMITIVE_F32,
     PRIMITIVE_F64,
     PRIMITIVE_F128,
     PRIMITIVE_STR,
+    PRIMITIVE_BOOL,
     PRIMITIVE_NONE, // for counting primitive types
 } PrimitiveKind;
 
@@ -123,8 +124,9 @@ typedef struct {
     Value val; // for constants.
 } Info;
 
-bool is_primitive_kind(const TokenKind kind);
-TypeIndex primitive_kind(const TokenKind kind);
+bool is_primitive_kind(TokenKind kind);
+TypeIndex primitive_kind(TokenKind kind);
+const char *primitive_name(PrimitiveKind kind);
 
 TypePool *init_type_pool(void);
 void free_type_pool(TypePool *pool);

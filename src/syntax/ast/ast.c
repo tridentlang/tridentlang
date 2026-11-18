@@ -126,9 +126,9 @@ AstNode *ast_ctl(AstNode *base, AstKind kind, AstNode *cond, AstNode *body) {
     return base;
 }
 
-AstNode *ast_type(AstNode *base, Token *type) {
+AstNode *ast_type(AstNode *base, StrView name) {
     base->kind = AST_TYPE_NAME;
-    base->as.type_tok = type;
+    base->as.ident.name = name;
     return base;
 }
 

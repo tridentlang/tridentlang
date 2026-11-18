@@ -72,7 +72,6 @@ AstKids ast_kids(const AstNode *n) {
 
     case AST_TYPE_FUNC:
         kids_add(&k, n->as.func_t.return_type);
-        kids_add(&k, NULL);
         kids_add(&k, n->as.func_t.args);
         break;
 

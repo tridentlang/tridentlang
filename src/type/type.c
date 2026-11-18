@@ -31,7 +31,7 @@ bool is_primitive_kind(const TokenKind kind) {
     }
 }
 
-PrimitiveKind primitive_kind(const TokenKind kind) {
+TypeIndex primitive_kind(const TokenKind kind) {
     switch (kind) {
     case KW_VOID: return PRIMITIVE_VOID;
     case KW_I8: return PRIMITIVE_I8;
@@ -53,6 +53,31 @@ PrimitiveKind primitive_kind(const TokenKind kind) {
     case KW_F128: return PRIMITIVE_F128;
     case KW_STR: return PRIMITIVE_STR;
     default: return PRIMITIVE_NONE;
+    }
+}
+
+const char *primitive_name(PrimitiveKind kind) {
+    switch (kind) {
+    case PRIMITIVE_VOID: return "void";
+    case PRIMITIVE_I8: return "i8";
+    case PRIMITIVE_I16: return "i16";
+    case PRIMITIVE_I32: return "i32";
+    case PRIMITIVE_I64: return "i64";
+    case PRIMITIVE_I128: return "i128";
+    case PRIMITIVE_ISIZE: return "isize";
+    case PRIMITIVE_U8: return "u8";
+    case PRIMITIVE_U16: return "u16";
+    case PRIMITIVE_U32: return "u32";
+    case PRIMITIVE_U64: return "u64";
+    case PRIMITIVE_U128: return "u128";
+    case PRIMITIVE_USIZE: return "usize";
+    case PRIMITIVE_F16: return "f16";
+    case PRIMITIVE_F32: return "f32";
+    case PRIMITIVE_F64: return "f64";
+    case PRIMITIVE_F128: return "f128";
+    case PRIMITIVE_STR: return "str";
+    case PRIMITIVE_BOOL: return "bool";
+    default: return "NONE";
     }
 }
 

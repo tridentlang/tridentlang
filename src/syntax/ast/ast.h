@@ -176,7 +176,10 @@ struct AstNode {
         } type;
 
         /* AST_TYPE_NAME */
-        Token *type_tok;
+        struct {
+            StrView name;
+            size_t type;
+        } type_tok;
 
         /* AST_COMPOUND */
         struct {
@@ -254,7 +257,7 @@ AstNode *ast_cond(AstNode *base, AstKind kind, AstNode *cond, AstNode *then_b,
                   AstNode *else_b);
 AstNode *ast_ctl(AstNode *base, AstKind kind, AstNode *cond, AstNode *body);
 
-AstNode *ast_type(AstNode *base, Token *type);
+AstNode *ast_type(AstNode *base, StrView name);
 AstNode *ast_type_array(AstNode *base, AstNode *inner, AstNode *len);
 AstNode *ast_type_pointer(AstNode *base, AstKind kind, AstNode *inner, bool mutable);
 AstNode *ast_type_func(AstNode *base, AstNode *args, AstNode *return_type);

@@ -104,7 +104,7 @@ static bool enter_let(Visitor *v, AstNode *node) {
     var->decl = node;
     node->as.let.info = var;
     put_to_hash_map(a->current_scope_table, name.str, name.len, var);
-    return false;
+    return true;
 }
 
 static bool enter_identifier(Visitor *v, AstNode *node) {
@@ -113,15 +113,10 @@ static bool enter_identifier(Visitor *v, AstNode *node) {
     if (!var) {
         diag_err(a->src, node->span, true, "undefined identifier `" SV_FMT "'.",
                  SV_ARG(node->as.ident.name));
-        return false;
+        return true;
     }
     node->as.ident.info = var;
-    return false;
-}
-
-static bool enter_member(Visitor *v, AstNode *node) {
-    ast_walk(v, node->as.member.left);
-    return false;
+    return true;
 }
 
 bool analyser_pass_1(Analyser *a) {
@@ -141,15 +136,15 @@ bool analyser_pass_1(Analyser *a) {
     v.enter[AST_LET] = enter_let;
     v.enter[AST_IDENT] = enter_identifier;
 
-    v.enter[AST_MEMBER] = enter_member;
-    v.enter[AST_DREF_MEMBER] = enter_member;
-
     v.enter[AST_IF] = enter_block;
     v.leave[AST_IF] = leave_block;
+
     v.enter[AST_ELSE_IF] = enter_block;
     v.leave[AST_ELSE_IF] = leave_block;
+
     v.enter[AST_WHILE] = enter_block;
     v.leave[AST_WHILE] = leave_block;
+
     v.enter[AST_LOOP_WHILE] = enter_block;
     v.leave[AST_LOOP_WHILE] = leave_block;
 
@@ -157,14 +152,12 @@ bool analyser_pass_1(Analyser *a) {
     stack_push(a->scope_stack, global_scope);
     a->current_scope_table = global_scope;
 
-    // print_ast(a->root);
-    // fprintf(stderr, "\nsema-pass-1\n\n");
     ast_walk(&v, a->root);
 
     free_hash_map(global_scope);
-
     free_stack(a->scope_stack);
     a->scope_stack = NULL;
     a->current_scope_table = NULL;
+
     return true;
 }

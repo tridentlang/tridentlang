@@ -69,7 +69,7 @@ AstNode *parse_type(Parser *p) {
 
     if (is_primitive_kind(t->kind) || is_kind(p, IDENTIFIER_LIT)) {
         pconsume(p);
-        return ast_type(base(p, t), t);
+        return ast_type(base(p, t), t->lexeme);
     }
 
     parser_error(p, current(p)->span, "expected a type, found `%s'",

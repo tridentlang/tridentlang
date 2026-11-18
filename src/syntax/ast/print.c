@@ -142,7 +142,7 @@ static void print_node_label(const AstNode *node) {
 
     case AST_TYPE_NAME:
         printf(FGB_CYAN "%s: -> " FG_GREEN "\"" SV_FMT "\"" RESET, kind,
-               SV_ARG(node->as.type_tok->lexeme));
+               SV_ARG(node->as.type_tok.name));
         break;
 
     case AST_TYPE_ARRAY: printf(FGB_CYAN "%s: " RESET, kind); break;
